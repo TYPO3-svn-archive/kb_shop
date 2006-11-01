@@ -1,0 +1,90 @@
+<T3DataStructure>
+	<meta type="array">
+		<langDisable type="integer">1</langDisable>
+	</meta>
+	<sheets>
+		<sDEF>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang_db.php:ds_property.sheet_settings</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_min type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_integer.min</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>10</size>
+								<eval>double2</eval>
+								<range>
+									<upper>1000000000</upper>
+									<lower>-1000000000</lower>
+								</range>
+								<default>-1000000000</default>
+							</config>
+						</TCEforms>
+					</field_min>
+					<field_max type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_integer.max</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>10</size>
+								<eval>double2</eval>
+								<range>
+									<upper>1000000000</upper>
+									<lower>-1000000000</lower>
+								</range>
+								<default>1000000000</default>
+							</config>
+						</TCEforms>
+					</field_max>
+					<field_default type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_integer.default</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>10</size>
+								<eval>double2</eval>
+								<range>
+									<upper>1000000000</upper>
+									<lower>-1000000000</lower>
+								</range>
+								<default>0</default>
+							</config>
+						</TCEforms>
+					</field_default>
+					<field_size type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_string.size</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>10</size>
+								<eval>int</eval>
+								<range>
+									<upper>200</upper>
+									<lower>1</lower>
+								</range>
+								<default>10</default>
+							</config>
+						</TCEforms>
+					</field_size>
+					<field_required type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_integer.required</label>
+							<exclude>1</exclude>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</field_required>
+				</el>
+			</ROOT>
+		</sDEF>
+	</sheets>
+</T3DataStructure>

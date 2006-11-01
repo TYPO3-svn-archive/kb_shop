@@ -1,0 +1,28 @@
+<T3DataStructure>
+	<meta type="array">
+		<langDisable type="integer">1</langDisable>
+	</meta>
+	<sheets>
+		<sDEF>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang_db.php:ds_property.sheet_settings</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_default type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_datetime.default</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<eval>datetime</eval>
+								<checkbox>0</checkbox>
+							</config>
+						</TCEforms>
+					</field_default>
+				</el>
+			</ROOT>
+		</sDEF>
+	</sheets>
+</T3DataStructure>

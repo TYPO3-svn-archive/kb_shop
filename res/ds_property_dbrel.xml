@@ -1,0 +1,151 @@
+<T3DataStructure>
+	<meta type="array">
+		<langDisable type="integer">1</langDisable>
+	</meta>
+	<sheets>
+		<sDEF>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang_db.php:ds_property.sheet_default</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_pages type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.pages</label>
+							<exclude>1</exclude>
+							<config>
+								<type>group</type>
+								<internal_type>db</internal_type>
+								<allowed>pages</allowed>
+								<size>6</size>
+								<autoSizeMax>20</autoSizeMax>
+								<minitems>0</minitems>
+								<maxitems>100</maxitems>
+							</config>
+						</TCEforms>
+					</field_pages>
+					<field_elements type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.elements</label>
+							<exclude>1</exclude>
+							<config>
+								<type>group</type>
+								<internal_type>db</internal_type>
+								<allowed>*</allowed>
+								<prepend_tname>1</prepend_tname>
+								<size>6</size>
+								<autoSizeMax>20</autoSizeMax>
+								<minitems>0</minitems>
+								<maxitems>100</maxitems>
+							</config>
+						</TCEforms>
+					</field_elements>
+					<field_table type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.dbtable</label>
+							<exclude>1</exclude>
+							<config>
+								<type>select</type>
+								<special>tables</special>
+								<items>
+									<numIndex index="0" type="array">
+										<numIndex index="0">LLL:EXT:static_info_tables/locallang_db.php:static_languages.title</numIndex>
+										<numIndex index="1">static_languages</numIndex>
+										<numIndex index="2">../typo3conf/ext/static_info_tables/icon_static_languages.gif</numIndex>
+									</numIndex>
+									<numIndex index="1" type="array">
+										<numIndex index="0">LLL:EXT:static_info_tables/locallang_db.php:static_countries.title</numIndex>
+										<numIndex index="1">static_countries</numIndex>
+										<numIndex index="2">../typo3conf/ext/static_info_tables/icon_static_countries.gif</numIndex>
+									</numIndex>
+									<numIndex index="2" type="array">
+										<numIndex index="0">LLL:EXT:static_info_tables/locallang_db.php:static_currencies.title</numIndex>
+										<numIndex index="1">static_currencies</numIndex>
+										<numIndex index="2">../typo3conf/ext/static_info_tables/icon_static_currencies.gif</numIndex>
+									</numIndex>
+								</items>
+								<size>1</size>
+								<max>1</max>
+								<min>0</min>
+							</config>
+						</TCEforms>
+					</field_table>
+					<field_size type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.size</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<eval>int</eval>
+								<size>10</size>
+								<max>200</max>
+								<min>1</min>
+								<default>1</default>
+							</config>
+						</TCEforms>
+					</field_size>
+					<field_maxitems type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.maxitems</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<eval>int</eval>
+								<size>10</size>
+								<max>200</max>
+								<min>1</min>
+								<default>1</default>
+							</config>
+						</TCEforms>
+					</field_maxitems>
+					<field_autoSizeMax type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.autoSizeMax</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<eval>int</eval>
+								<size>10</size>
+								<max>200</max>
+								<min>0</min>
+								<default>0</default>
+							</config>
+						</TCEforms>
+					</field_autoSizeMax>
+					<emptyLabel type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.emptyLabel</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>30</size>
+								<max>30</max>
+								<min>0</min>
+								<default></default>
+							</config>
+						</TCEforms>
+					</emptyLabel>
+					<only_current_page type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.only_current_page</label>
+							<exclude>1</exclude>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</only_current_page>
+					<multiple type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.multiple</label>
+							<exclude>1</exclude>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</multiple>
+				</el>
+			</ROOT>
+		</sDEF>
+	</sheets>
+</T3DataStructure>

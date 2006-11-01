@@ -1,0 +1,30 @@
+
+	# cat=basic; type=boolean; label=TCA mode: When set the native product table TCA will get modified and the ext_tables.sql file will get modified. Also the database will get updated to reflect the current status of used properties. This gets done whenever a property gets moved or modified and a product with this new category gets edited.
+TCAmode = 1
+	
+	# cat=basic; type=boolean; label=SQL Debug: When set SQL Debug will get set while rendering the FE-Plugin and other SQL queries.
+SQLdebug = 0
+
+	# cat=basic; type=boolean; label=Don't cache: Will disable caching of Flexform DS structures and TCA structures generated from the properties (Use for Debug only. Else really slow)
+dontCache = 0
+
+
+	# cat=basic; type=string; label=Category Folders (MANDATORY!): A List of
+	# UIDs of all folders containing categories.
+categoryFolders = 
+
+	# cat=basic; type=string; label=Property Folders (MANDATORY!): A List of UIDs of the folders containing all properties and subfolders with properties. The parent folder must be listed first. Each used subfolder must be listed. Only one level deep. See doc.
+propertyFolders = 
+
+	# cat=basic; type=string; label=Field Prefix: If set this prefix instead of kbs_ will get used
+fieldPrefix = 
+
+	# cat=basic; type=string; label=Configuration Extension: If set then the .sql table files of the following extension will get modified. This can get used for separating the shop-extension from it's sql-definitin.
+configExtension = 
+
+	# cat=basic; type=integer; label=List Items: How many rows to show in List-Module (default view)
+listItems = 
+
+	# cat=basic; type=integer; label=Single List Items: How many rows to show in List-Module (single-table view)
+singleListItems = 
+

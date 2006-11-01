@@ -1,0 +1,66 @@
+<T3DataStructure>
+	<meta type="array">
+		<langDisable type="integer">1</langDisable>
+	</meta>
+	<sheets>
+		<sDEF>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang_db.php:ds_property.sheet_default</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_cols type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_multicheck.columns</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>10</size>
+								<eval>int</eval>
+								<range>
+									<lower>1</lower>
+									<upper>10</upper>
+								</range>
+								<default>2</default>
+							</config>
+						</TCEforms>
+					</field_cols>
+					<list_value_section type="array">
+						<type>array</type>
+						<section>1</section>
+						<el type="array">
+							<list_value_label type="array">
+								<type>array</type>
+								<tx_templavoila type="array">
+									<title>Value</title>
+								</tx_templavoila>
+								<el type="array">
+									<field_label type="array">
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_multicheck.label</label>
+											<exclude>1</exclude>
+											<config>
+												<type>input</type>
+												<size>30</size>
+											</config>
+										</TCEforms>
+									</field_label>
+									<field_default type="array">
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_multicheck.default</label>
+											<exclude>1</exclude>
+											<config>
+												<type>check</type>
+											</config>
+										</TCEforms>
+									</field_default>
+								</el>
+							</list_value_label>
+						</el>
+					</list_value_section>
+				</el>
+			</ROOT>
+		</sDEF>
+	</sheets>
+</T3DataStructure>

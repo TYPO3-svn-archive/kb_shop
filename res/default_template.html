@@ -1,0 +1,267 @@
+
+<!-- ###TMPL_listView### begin 
+	| This template get's used to display a listing of the elements
+	| in the entries table. It contains subparts which get only shown
+	| when specific choices are made in the FE-Plugin interface (like
+	| whether to show the criteria selector or the search-box)
+
+	| Subparts you can use in this template:
+		* ###PART_criteriaSelector###
+		* ###PART_searchBox###
+		* ###PART_pageBrowser###
+		* ###PART_listing###
+
+	| Markers you can use in this template (in the whole):
+		* ###LABEL_++fieldname++###			The label/title of the specified field (fieldname = fieldPrefix . alias when set or uid)
+		* ###COBJ_LISTING_++cObjName++###			The value of a cObj valid for the whole listing. (.listView.cObjArr.*)
+
+	| Markers you can use inside and item (###LIST_item## subpart) of the ###PART_listing### subpart.
+		* ###FIELD_RAWVALUE_++fieldname++###			The raw database value of a field
+		* ###FIELD_VALUE_++fieldname++###			The value with htmlspecialchars applied or a stdWrap if set.
+		* ###COBJ_ITEM_++cObjName++###			The value of a cObj which get's reevaluated for each item (the fields array is merged with the values of the specific item)
+
+-->
+<div class="csc-header csc-header-n1">
+	###COBJ_LISTING_projectsHeader###
+</div>
+
+
+<!-- ###PART_criteriaSelector### begin -->
+<table cellspacing="0" cellpadding="5" cellspacing="0" border="0" class="listing-search">
+<tr>
+	<td><img src="fileadmin/img/search.png" alt="Search" /></td>
+<!-- ###CriteriaItem### begin -->
+	<td>
+		<strong>###TITLE###</strong><br /><br />
+		<select name="###ELEMENT_NAME###" size="1" onchange="document.location.href = this.options[this.selectedIndex].value;">
+			<!-- ###CriteriaSelectorOption### begin -->
+			<option value="###LINK_HREF###" ###SELECTED###>###LABEL###</option>
+			<!-- ###CriteriaSelectorOption### end -->
+		</select>
+	</td>
+<!-- ###CriteriaItem### end -->
+</tr>
+</table>
+<!-- ###PART_criteriaSelector### end -->
+
+	<div class="pagebrowser-header">
+	<!-- ###PART_pageBrowser### begin -->
+	<table cellspacing="0" cellpadding="0" border="0" width="100%" class="listing-pagebrowser">
+		<tr>
+			<!-- ###BROWSE_itemFirst### begin -->
+			<td style="width: 50%;">
+				<a href="###LINK_HREF###" style="text-align: left; width: 100px;">###LABEL_first###</a>
+			</td>
+			<!-- ###BROWSE_itemFirst### end -->
+				<!-- ###BROWSE_itemList### begin -->
+			<td>
+				<a href="###LINK_HREF###" class="###LINK_SELECTED###">###LABEL_item###</a>
+			</td>
+				<!-- ###BROWSE_itemList### end -->
+			<!-- ###BROWSE_itemLast### begin -->
+			<td style="width: 50%;">
+				<a href="###LINK_HREF###" style="text-align: right; width: 100px; float: right;">###LABEL_last###</a>
+			</td>
+			<!-- ###BROWSE_itemLast### begin -->
+		</tr>
+	</table>
+	<!-- ###PART_pageBrowser### end -->
+	</div>
+
+
+<!-- ###PART_listing### begin -->
+	<div class="list-container">
+		<!-- ###LIST_item### begin -->
+		<div class="list-item">
+			<div class="list-icon">
+				###COBJ_ITEM_icon###
+			</div>
+			<div class="list-item-content">
+				<h1>###FIELD_VALUE_title###</h1>
+				<p>###FIELD_VALUE_desc### <a href="###LINK_singleView_HREF###" style="font-weight: bold;">[mehr]</a></p>
+				<p>###FIELD_VALUE_contact###</p>
+			</div>
+			<div style="clear: left;"></div>
+		</div>
+		<!-- ###LIST_item### end -->
+	</div>
+
+	<div class="pagebrowser-bottom">
+	<!-- ###PART_pageBrowser### begin -->
+	<table cellspacing="0" cellpadding="0" border="0" width="100%" class="listing-pagebrowser">
+		<tr>
+			<!-- ###BROWSE_itemFirst### begin -->
+			<td style="width: 50%;">
+				<a href="###LINK_HREF###" style="text-align: left; width: 100px;">###LABEL_first###</a>
+			</td>
+			<!-- ###BROWSE_itemFirst### end -->
+				<!-- ###BROWSE_itemList### begin -->
+			<td>
+				<a href="###LINK_HREF###">###LABEL_item###</a>
+			</td>
+				<!-- ###BROWSE_itemList### end -->
+			<!-- ###BROWSE_itemLast### begin -->
+			<td style="width: 50%;">
+				<a href="###LINK_HREF###" style="text-align: right; width: 100px; float: right;">###LABEL_last###</a>
+			</td>
+			<!-- ###BROWSE_itemLast### begin -->
+		</tr>
+	</table>
+	<!-- ###PART_pageBrowser### end -->
+	</div>
+
+<!-- ###PART_listing### end -->
+<!-- ###PART_listingEmpty### begin -->
+<h3>###LLLABEL_noResults###</h3>
+<!-- ###PART_listingEmpty### end -->
+<!-- ###TMPL_listView### end -->
+
+
+
+
+<!-- ###TMPL_singleView### begin 
+	Same structure as in listView. Also a container ###PART_listing### and ###LIST_item### is required.
+	Only inside ###LIST_item### the fields of the item will be available. See pi1/class.tx_kbshop_pi1.php
+	and look for "easy way" to know the reason.
+-->
+<!-- ###PART_listing### begin -->
+	<!-- ###LIST_item### begin -->
+<div class="csc-header csc-header-n1">
+	###COBJ_ITEM_projectTitle###
+</div>
+
+<div class="list-container">
+	<!-- ###FIELD_SUBPART_title### begin -->
+	<div class="list-item header-item">
+		<div class="list-item-label">
+			Projektname
+		</div>
+		<div class="list-item-value">
+			###FIELD_VALUE_title###
+		</div>
+	</div>
+	<!-- ###FIELD_SUBPART_title### end -->
+	
+	<!-- ###FIELD_SUBPART_prtarget### begin -->
+	<div class="list-item">
+		<div class="list-item-label">
+			###LABEL_prtarget###
+		</div>
+		<div class="list-item-value">
+			###FIELD_VALUE_prtarget###
+		</div>
+	</div>
+	<!-- ###FIELD_SUBPART_prtarget### end -->
+
+	<!-- ###FIELD_SUBPART_agenda### begin -->
+	<div class="list-item">
+		<div class="list-item-label">
+			Programm
+		</div>
+		<div class="list-item-value">
+			###FIELD_VALUE_agenda###
+		</div>
+	</div>
+	<!-- ###FIELD_SUBPART_agenda### end -->
+
+	<!-- ###FIELD_SUBPART_partners### begin -->
+	<div class="list-item">
+		<div class="list-item-label">
+			Partner
+		</div>
+		<div class="list-item-value">
+			###FIELD_VALUE_partners###
+		</div>
+	</div>
+	<!-- ###FIELD_SUBPART_partners### end -->
+
+	<!-- ###FIELD_SUBPART_volume### begin -->
+	<div class="list-item">
+		<div class="list-item-label">
+			Projektvolumen
+		</div>
+		<div class="list-item-value">
+			###FIELD_VALUE_volume###
+		</div>
+	</div>
+	<!-- ###FIELD_SUBPART_volume### end -->
+
+	<!-- ###FIELD_SUBPART_begin_duration### begin -->
+	<div class="list-item">
+		<div class="list-item-label">
+			Beginn und Dauer
+		</div>
+		<div class="list-item-value">
+			###FIELD_VALUE_begin_duration###
+		</div>
+	</div>
+	<!-- ###FIELD_SUBPART_begin_duration### end -->
+
+	<!-- ###FIELD_SUBPART_prcontent### begin -->
+	<div class="list-item">
+		<div class="list-item-label">
+			Projektinhalt
+		</div>
+		<div class="list-item-value">
+			###FIELD_VALUE_prcontent###
+		</div>
+	</div>
+	<!-- ###FIELD_SUBPART_prcontent### end -->
+
+	<!-- ###FIELD_SUBPART_role### begin -->
+	<div class="list-item">
+		<div class="list-item-label">
+			Rolle der<br />Firma
+		</div>
+		<div class="list-item-value">
+			###FIELD_VALUE_role###
+		</div>
+	</div>
+	<!-- ###FIELD_SUBPART_role### end -->
+
+	<!-- ###FIELD_SUBPART_contact### begin -->
+	<div class="list-item">
+		<div class="list-item-label">
+			Kontakt
+		</div>
+		<div class="list-item-value">
+			###FIELD_VALUE_contact###
+		</div>
+	</div>
+	<!-- ###FIELD_SUBPART_contact### end -->
+
+	<!-- ###FIELD_SUBPART_links### begin -->
+	<div class="list-item">
+		<div class="list-item-label">
+			Links
+		</div>
+		<div class="list-item-value">
+			<ul class="links">
+				###COBJ_ITEM_links###
+			</ul>
+		</div>
+	</div>
+	<!-- ###FIELD_SUBPART_links### end -->
+
+	<!-- ###FIELD_SUBPART_downloads### begin -->
+	<div class="list-item">
+		<div class="list-item-label">
+			Downloads
+		</div>
+		<div class="list-item-value">
+			<dl class="files">
+				###COBJ_ITEM_downloads###
+			</dl>
+		</div>
+	</div>
+	<!-- ###FIELD_SUBPART_downloads### end -->
+</div>
+
+<br />
+<br />
+<br />
+<a href="###LINK_listView_HREF###"><img src="fileadmin/templates/default/img/symb_zurueck_pfeil.gif" alt="###LLLABEL_to_overview###" title="###LLLABEL_to_overview###" /> ###LLLABEL_to_overview###</a>
+	<!-- ###LIST_item### end-->
+<!-- ###PART_listing### end -->
+<!-- ###TMPL_singleView### end -->
+

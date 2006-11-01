@@ -1,0 +1,1238 @@
+<T3DataStructure>
+	<meta type="array">
+		<langChildren type="integer">1</langChildren>
+		<langDisable type="integer">0</langDisable>
+	</meta>
+	<sheets>
+		<sDEF>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang.php:pi1_title</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_subconf type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.subconf</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>30</size>
+								<eval>trim</eval>
+								<default></default>
+							</config>
+						</TCEforms>
+					</field_subconf>
+					<field_pages type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.pages</label>
+							<exclude>1</exclude>
+							<config>
+								<type>group</type>
+								<internal_type>db</internal_type>
+								<allowed>pages</allowed>
+								<size>6</size>
+								<autoSizeMax>20</autoSizeMax>
+								<minitems>0</minitems>
+								<maxitems>50</maxitems>
+							</config>
+						</TCEforms>
+					</field_pages>
+					<field_pages_recursive>
+						<TCEforms>
+							<exclude>1</exclude>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.pages_recursive</label>
+							<config>
+								<type>select</type>
+								<items>
+									<numIndex index="0" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.pages_recursive.no</numIndex>
+										<numIndex index="1">0</numIndex>
+									</numIndex>
+									<numIndex index="1" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.pages_recursive.1level</numIndex>
+										<numIndex index="1">1</numIndex>
+									</numIndex>
+									<numIndex index="2" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.pages_recursive.2level</numIndex>
+										<numIndex index="1">2</numIndex>
+									</numIndex>
+									<numIndex index="3" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.pages_recursive.3level</numIndex>
+										<numIndex index="1">3</numIndex>
+									</numIndex>
+									<numIndex index="4" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.pages_recursive.infinite</numIndex>
+										<numIndex index="1">99</numIndex>
+									</numIndex>
+								</items>
+							</config>
+						</TCEforms>
+					</field_pages_recursive>
+					<field_template type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.template</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>30</size>
+								<eval>trim</eval>
+								<default>EXT:kb_shop/res/default_template.html</default>
+							</config>
+						</TCEforms>
+					</field_template>
+					<field_table type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.table</label>
+							<exclude>1</exclude>
+							<config>
+								<type>select</type>
+								<foreign_table>tx_kbshop_category</foreign_table>
+								<foreign_table_where>AND parent=0</foreign_table_where>
+								<size>1</size>
+								<minitems>0</minitems>
+								<maxitems>1</maxitems>
+							</config>
+						</TCEforms>
+					</field_table>
+					<field_disableSingleView>
+						<TCEforms>
+							<exclude>1</exclude>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.disableSingleView</label>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</field_disableSingleView>
+				</el>
+			</ROOT>
+		</sDEF>
+		<listView>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_disableListView>
+						<TCEforms>
+							<exclude>1</exclude>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.disableListView</label>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</field_disableListView>
+					<field_itemsPerPage>
+						<TCEforms>
+							<exclude>1</exclude>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.itemsPerPage</label>
+							<config>
+								<type>input</type>
+								<size>10</size>
+								<eval>int</eval>
+								<range>
+									<lower>0</lower>
+									<upper>100000</upper>
+								</range>
+								<default>30</default>
+							</config>
+						</TCEforms>
+					</field_itemsPerPage>
+					<field_showPagebrowser>
+						<TCEforms>
+							<exclude>1</exclude>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.showPagebrowser</label>
+							<config>
+								<type>check</type>
+								<default>1</default>
+							</config>
+						</TCEforms>
+					</field_showPagebrowser>
+					<field_pagesInBrowser>
+						<TCEforms>
+							<exclude>1</exclude>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.pagesInBrowser</label>
+							<config>
+								<type>input</type>
+								<size>10</size>
+								<eval>int</eval>
+								<range>
+									<lower>1</lower>
+									<upper>1000</upper>
+								</range>
+								<default>5</default>
+								<displayCond>FIELD:showPagebrowser:REQ:true</displayCond>
+							</config>
+						</TCEforms>
+					</field_pagesInBrowser>
+					<field_showFirstLast>
+						<TCEforms>
+							<exclude>1</exclude>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.showFirstLast</label>
+							<config>
+								<type>check</type>
+								<default>1</default>
+								<displayCond>FIELD:showPagebrowser:REQ:true</displayCond>
+							</config>
+						</TCEforms>
+					</field_showFirstLast>
+					<field_showPrevNext>
+						<TCEforms>
+							<exclude>1</exclude>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.showPrevNext</label>
+							<config>
+								<type>check</type>
+								<default>1</default>
+								<displayCond>FIELD:showPagebrowser:REQ:true</displayCond>
+							</config>
+						</TCEforms>
+					</field_showPrevNext>
+					<list_order_section type="array">
+						<type>array</type>
+						<section>1</section>
+						<el type="array">
+							<list_order_item type="array">
+								<type>array</type>
+								<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.list_order_section.list_order_item</label>
+								<tx_templavoila type="array">
+									<title>Order item</title>
+								</tx_templavoila>
+								<el type="array">
+									<field_list_order>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.list_order_section.list_order_item.field_list_order</label>
+											<config>
+												<type>select</type>
+												<items>
+													<numIndex index="1" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.crdate</numIndex>
+														<numIndex index="1">crdate</numIndex>
+													</numIndex>
+													<numIndex index="2" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.tstamp</numIndex>
+														<numIndex index="1">tstamp</numIndex>
+													</numIndex>
+													<numIndex index="3" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.cruser_id</numIndex>
+														<numIndex index="1">cruser_id</numIndex>
+													</numIndex>
+													<numIndex index="4" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.deleted</numIndex>
+														<numIndex index="1">deleted</numIndex>
+													</numIndex>
+													<numIndex index="5" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.hidden</numIndex>
+														<numIndex index="1">hidden</numIndex>
+													</numIndex>
+													<numIndex index="6" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.starttime</numIndex>
+														<numIndex index="1">starttime</numIndex>
+													</numIndex>
+													<numIndex index="7" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.endtime</numIndex>
+														<numIndex index="1">endtime</numIndex>
+													</numIndex>
+													<numIndex index="8" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.fe_group</numIndex>
+														<numIndex index="1">fe_group</numIndex>
+													</numIndex>
+													<numIndex index="9" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.sorting</numIndex>
+														<numIndex index="1">sorting</numIndex>
+													</numIndex>
+													<numIndex index="10" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.category</numIndex>
+														<numIndex index="1">category</numIndex>
+													</numIndex>
+												</items>
+											</config>
+										</TCEforms>
+									</field_list_order>
+									<field_order_custom>
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.list_order_section.list_order_item.field_order_custom</label>
+											<exclude>1</exclude>
+											<config>
+												<type>input</type>
+											</config>
+										</TCEforms>
+									</field_order_custom>
+									<field_list_direction>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.list_order_section.list_order_item.field_list_direction</label>
+											<config>
+												<type>select</type>
+												<items>
+													<numIndex index="1" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:direction.ascending</numIndex>
+														<numIndex index="1">ASC</numIndex>
+													</numIndex>
+													<numIndex index="2" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:direction.descending</numIndex>
+														<numIndex index="1">DESC</numIndex>
+													</numIndex>
+												</items>
+											</config>
+										</TCEforms>
+									</field_list_direction>
+								</el>
+							</list_order_item>
+						</el>
+					</list_order_section>
+				</el>
+			</ROOT>
+		</listView>
+		<criteria>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_showCriteriaSelector type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.show_criteria_selector</label>
+							<exclude>1</exclude>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</field_showCriteriaSelector>
+					<field_criteriaConnector type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.criteriaConnector</label>
+							<exclude>1</exclude>
+							<config>
+								<type>select</type>
+								<items>
+									<numIndex index="1" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang.php:criteriaConnector.AND</numIndex>
+										<numIndex index="1">AND</numIndex>
+									</numIndex>
+									<numIndex index="2" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang.php:criteriaConnector.OR</numIndex>
+										<numIndex index="1">OR</numIndex>
+									</numIndex>
+								</items>
+							</config>
+						</TCEforms>
+					</field_criteriaConnector>
+					<list_criteria_section type="array">
+						<type>array</type>
+						<section>1</section>
+						<el type="array">
+							<list_criteria_item type="array">
+								<type>array</type>
+								<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.list_criteria_item</label>
+								<tx_templavoila type="array">
+									<title>Criteria item</title>
+								</tx_templavoila>
+								<el type="array">
+									<field_compare_field>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_field</label>
+											<config>
+												<type>select</type>
+												<items>
+													<numIndex index="1" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.uid</numIndex>
+														<numIndex index="1">uid</numIndex>
+													</numIndex>
+													<numIndex index="2" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.crdate</numIndex>
+														<numIndex index="1">crdate</numIndex>
+													</numIndex>
+													<numIndex index="3" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.tstamp</numIndex>
+														<numIndex index="1">tstamp</numIndex>
+													</numIndex>
+													<numIndex index="4" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.cruser_id</numIndex>
+														<numIndex index="1">cruser_id</numIndex>
+													</numIndex>
+													<numIndex index="5" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.deleted</numIndex>
+														<numIndex index="1">deleted</numIndex>
+													</numIndex>
+													<numIndex index="6" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.hidden</numIndex>
+														<numIndex index="1">hidden</numIndex>
+													</numIndex>
+													<numIndex index="7" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.starttime</numIndex>
+														<numIndex index="1">starttime</numIndex>
+													</numIndex>
+													<numIndex index="8" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.endtime</numIndex>
+														<numIndex index="1">endtime</numIndex>
+													</numIndex>
+													<numIndex index="9" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.fe_group</numIndex>
+														<numIndex index="1">fe_group</numIndex>
+													</numIndex>
+													<numIndex index="10" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.category</numIndex>
+														<numIndex index="1">category</numIndex>
+													</numIndex>
+												</items>
+											</config>
+										</TCEforms>
+									</field_compare_field>
+									<field_compare_custom type="array">
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_custom</label>
+											<exclude>1</exclude>
+											<config>
+												<type>input</type>
+											</config>
+										</TCEforms>
+									</field_compare_custom>
+									<field_compare_usersel type="array">
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_usersel</label>
+											<exclude>1</exclude>
+											<config>
+												<type>check</type>
+											</config>
+											<displayCond>FIELD:field_compare_field:IN:cruser_id,deleted,hidden,fe_group,category</displayCond>
+										</TCEforms>
+									</field_compare_usersel>
+									<field_compare_number>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_number</label>
+											<displayCond>FIELD:field_compare_field:IN:uid</displayCond>
+											<config>
+												<type>select</type>
+												<items>
+													<numIndex index="0" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_number.smaller</numIndex>
+														<numIndex index="1">smaller</numIndex>
+													</numIndex>
+													<numIndex index="1" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_number.bigger</numIndex>
+														<numIndex index="1">bigger</numIndex>
+													</numIndex>
+													<numIndex index="2" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_number.equals</numIndex>
+														<numIndex index="1">equals</numIndex>
+													</numIndex>
+													<numIndex index="3" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_number.in</numIndex>
+														<numIndex index="1">in</numIndex>
+													</numIndex>
+												</items>
+											</config>
+										</TCEforms>
+									</field_compare_number>
+									<field_compare_date>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date</label>
+											<displayCond>FIELD:field_compare_field:IN:crdate,tstamp,starttime,endtime</displayCond>
+											<config>
+												<type>select</type>
+												<items>
+													<numIndex index="0" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date.before</numIndex>
+														<numIndex index="1">smaller</numIndex>
+													</numIndex>
+													<numIndex index="1" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date.after</numIndex>
+														<numIndex index="1">bigger</numIndex>
+													</numIndex>
+													<numIndex index="2" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date.at</numIndex>
+														<numIndex index="1">equals</numIndex>
+													</numIndex>
+													<numIndex index="3" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date.beforeNow</numIndex>
+														<numIndex index="1">smallerNow</numIndex>
+													</numIndex>
+													<numIndex index="4" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date.afterNow</numIndex>
+														<numIndex index="1">biggerNow</numIndex>
+													</numIndex>
+												</items>
+											</config>
+										</TCEforms>
+									</field_compare_date>
+									<field_compare_string>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string</label>
+											<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:</displayCond>
+											<config>
+												<type>select</type>
+												<items>
+													<numIndex index="0" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string.like</numIndex>
+														<numIndex index="1">like</numIndex>
+													</numIndex>
+													<numIndex index="1" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string.begins_with</numIndex>
+														<numIndex index="1">begins_with</numIndex>
+													</numIndex>
+													<numIndex index="2" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string.ends_with</numIndex>
+														<numIndex index="1">ends_with</numIndex>
+													</numIndex>
+													<numIndex index="3" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string.contains</numIndex>
+														<numIndex index="1">contains</numIndex>
+													</numIndex>
+													<numIndex index="4" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string.equals</numIndex>
+														<numIndex index="1">equals</numIndex>
+													</numIndex>
+												</items>
+											</config>
+										</TCEforms>
+									</field_compare_string>
+									<field_compare_value_string>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>input</type>
+												<size>30</size>
+											</config>
+											<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:uid</displayCond>
+										</TCEforms>
+									</field_compare_value_string>
+									<field_compare_value_bool>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:deleted,hidden</displayCond>
+											<config>
+												<type>check</type>
+											</config>
+										</TCEforms>
+									</field_compare_value_bool>
+									<field_compare_rendercheck_multibool>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_rendercheck_multibool</label>
+											<displayCond>FIELD:field_compare_usersel:REQ:true &amp;&amp; FIELD:field_compare_field:IN:</displayCond>
+											<config>
+												<type>check</type>
+											</config>
+										</TCEforms>
+									</field_compare_rendercheck_multibool>
+									<field_compare_value_date>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>input</type>
+												<size>10</size>
+												<eval>date</eval>
+												<checkbox>0</checkbox>
+											</config>
+											<displayCond>FIELD:field_compare_date:!IN:smallerNow,biggerNow &amp;&amp; FIELD:field_compare_field:IN:starttime,endtime</displayCond>
+										</TCEforms>
+									</field_compare_value_date>
+									<field_compare_value_time>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>input</type>
+												<size>10</size>
+												<eval>time</eval>
+												<checkbox>0</checkbox>
+											</config>
+											<displayCond>FIELD:field_compare_field:IN:</displayCond>
+										</TCEforms>
+									</field_compare_value_time>
+									<field_compare_value_timesec>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>input</type>
+												<size>10</size>
+												<eval>timesec</eval>
+												<checkbox>0</checkbox>
+											</config>
+											<displayCond>FIELD:field_compare_field:IN:</displayCond>
+										</TCEforms>
+									</field_compare_value_timesec>
+									<field_compare_value_datetime>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>input</type>
+												<size>10</size>
+												<eval>datetime</eval>
+												<checkbox>0</checkbox>
+											</config>
+											<displayCond>FIELD:field_compare_field:IN:crdate,tstamp</displayCond>
+										</TCEforms>
+									</field_compare_value_datetime>
+									<field_compare_value_year>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>input</type>
+												<size>10</size>
+												<eval>year</eval>
+												<checkbox>0</checkbox>
+											</config>
+											<displayCond>FIELD:field_compare_field:IN:</displayCond>
+										</TCEforms>
+									</field_compare_value_year>
+									<field_compare_value_int>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>input</type>
+												<size>10</size>
+												<eval>int</eval>
+											</config>
+											<displayCond>FIELD:field_compare_field:IN:</displayCond>
+										</TCEforms>
+									</field_compare_value_int>
+									<field_compare_value_dateoffset>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_dateoffset</label>
+											<config>
+												<type>input</type>
+												<size>10</size>
+												<eval>int</eval>
+											</config>
+											<displayCond>FIELD:field_compare_date:!IN:smaller,bigger,equals &amp;&amp; FIELD:field_compare_field:IN:crdate,tstamp,starttime,endtime</displayCond>
+										</TCEforms>
+									</field_compare_value_dateoffset>
+									<field_compare_value_double>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>input</type>
+												<size>10</size>
+												<eval>double2</eval>
+											</config>
+											<displayCond>FIELD:field_compare_field:IN:</displayCond>
+										</TCEforms>
+									</field_compare_value_double>
+									<field_compare_value_cruser_id>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>group</type>
+												<internal_type>db</internal_type>
+												<allowed>be_users</allowed>
+												<size>6</size>
+												<autoSizeMax>20</autoSizeMax>
+												<minitems>0</minitems>
+												<maxitems>50</maxitems>
+											</config>
+											<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:cruser_id</displayCond>
+										</TCEforms>
+									</field_compare_value_cruser_id>
+									<field_compare_value_fe_group>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>group</type>
+												<internal_type>db</internal_type>
+												<allowed>fe_groups</allowed>
+												<size>6</size>
+												<autoSizeMax>20</autoSizeMax>
+												<minitems>0</minitems>
+												<maxitems>50</maxitems>
+											</config>
+											<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:fe_group</displayCond>
+										</TCEforms>
+									</field_compare_value_fe_group>
+									<field_compare_value_category>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>select</type>
+												<form_type>user</form_type>
+												<userFunc>tx_kbshop_treeview-&gt;displayCategoryTree</userFunc>
+												<treeView>1</treeView>
+												<foreign_table>tx_kbshop_category</foreign_table>
+												<langChildren>1</langChildren>
+												<size>8</size>
+												<autoSizeMax>25</autoSizeMax>
+												<minitems>0</minitems>
+												<maxitems>50</maxitems>
+											</config>
+											<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:category</displayCond>
+										</TCEforms>
+									</field_compare_value_category>
+									<field_compare_negate>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_negate</label>
+											<config>
+												<type>check</type>
+											</config>
+											<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:!IN:cruser_id,deleted,hidden,fe_group,category</displayCond>
+										</TCEforms>
+									</field_compare_negate>
+									<field_compare_defaultNone>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_defaultNone</label>
+											<config>
+												<type>check</type>
+											</config>
+											<displayCond>FIELD:field_compare_usersel:REQ:true</displayCond>
+										</TCEforms>
+									</field_compare_defaultNone>
+								</el>
+							</list_criteria_item>
+							<list_subcriteria type="array">
+								<type>array</type>
+								<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.list_subcriteria</label>
+								<tx_templavoila type="array">
+									<title>Sub-Criteria item</title>
+								</tx_templavoila>
+								<el type="array">
+									<field_criteriaConnector type="array">
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.criteriaConnector</label>
+											<exclude>1</exclude>
+											<config>
+												<type>select</type>
+												<items>
+													<numIndex index="1" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:criteriaConnector.AND</numIndex>
+														<numIndex index="1">AND</numIndex>
+													</numIndex>
+													<numIndex index="2" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:criteriaConnector.OR</numIndex>
+														<numIndex index="1">OR</numIndex>
+													</numIndex>
+												</items>
+											</config>
+										</TCEforms>
+									</field_criteriaConnector>
+									<list_criteria_section type="array">
+										<type>array</type>
+										<section>1</section>
+										<el type="array">
+											<list_criteria_item type="array">
+												<type>array</type>
+												<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.list_criteria_item</label>
+												<tx_templavoila type="array">
+													<title>Criteria item</title>
+												</tx_templavoila>
+												<el type="array">
+													<field_compare_field>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_field</label>
+															<config>
+																<type>select</type>
+																<items>
+																	<numIndex index="1" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.uid</numIndex>
+																		<numIndex index="1">uid</numIndex>
+																	</numIndex>
+																	<numIndex index="2" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.crdate</numIndex>
+																		<numIndex index="1">crdate</numIndex>
+																	</numIndex>
+																	<numIndex index="3" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.tstamp</numIndex>
+																		<numIndex index="1">tstamp</numIndex>
+																	</numIndex>
+																	<numIndex index="4" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.cruser_id</numIndex>
+																		<numIndex index="1">cruser_id</numIndex>
+																	</numIndex>
+																	<numIndex index="5" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.deleted</numIndex>
+																		<numIndex index="1">deleted</numIndex>
+																	</numIndex>
+																	<numIndex index="6" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.hidden</numIndex>
+																		<numIndex index="1">hidden</numIndex>
+																	</numIndex>
+																	<numIndex index="7" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.starttime</numIndex>
+																		<numIndex index="1">starttime</numIndex>
+																	</numIndex>
+																	<numIndex index="8" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.endtime</numIndex>
+																		<numIndex index="1">endtime</numIndex>
+																	</numIndex>
+																	<numIndex index="9" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.fe_group</numIndex>
+																		<numIndex index="1">fe_group</numIndex>
+																	</numIndex>
+																	<numIndex index="10" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.category</numIndex>
+																		<numIndex index="1">category</numIndex>
+																	</numIndex>
+																</items>
+															</config>
+														</TCEforms>
+													</field_compare_field>
+													<field_compare_custom type="array">
+														<TCEforms>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_custom</label>
+															<exclude>1</exclude>
+															<config>
+																<type>input</type>
+															</config>
+														</TCEforms>
+													</field_compare_custom>
+													<field_compare_usersel type="array">
+														<TCEforms>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_usersel</label>
+															<exclude>1</exclude>
+															<config>
+																<type>check</type>
+															</config>
+															<displayCond>FIELD:field_compare_field:IN:cruser_id,deleted,hidden,fe_group,category</displayCond>
+														</TCEforms>
+													</field_compare_usersel>
+													<field_compare_number>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_number</label>
+															<displayCond>FIELD:field_compare_field:IN:uid</displayCond>
+															<config>
+																<type>select</type>
+																<items>
+																	<numIndex index="0" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_number.smaller</numIndex>
+																		<numIndex index="1">smaller</numIndex>
+																	</numIndex>
+																	<numIndex index="1" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_number.bigger</numIndex>
+																		<numIndex index="1">bigger</numIndex>
+																	</numIndex>
+																	<numIndex index="2" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_number.equals</numIndex>
+																		<numIndex index="1">equals</numIndex>
+																	</numIndex>
+																	<numIndex index="3" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_number.in</numIndex>
+																		<numIndex index="1">in</numIndex>
+																	</numIndex>
+																</items>
+															</config>
+														</TCEforms>
+													</field_compare_number>
+													<field_compare_date>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date</label>
+															<displayCond>FIELD:field_compare_field:IN:crdate,tstamp,starttime,endtime</displayCond>
+															<config>
+																<type>select</type>
+																<items>
+																	<numIndex index="0" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date.before</numIndex>
+																		<numIndex index="1">smaller</numIndex>
+																	</numIndex>
+																	<numIndex index="1" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date.after</numIndex>
+																		<numIndex index="1">bigger</numIndex>
+																	</numIndex>
+																	<numIndex index="2" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date.at</numIndex>
+																		<numIndex index="1">equals</numIndex>
+																	</numIndex>
+																	<numIndex index="3" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date.beforeNow</numIndex>
+																		<numIndex index="1">smallerNow</numIndex>
+																	</numIndex>
+																	<numIndex index="4" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_date.afterNow</numIndex>
+																		<numIndex index="1">biggerNow</numIndex>
+																	</numIndex>
+																</items>
+															</config>
+														</TCEforms>
+													</field_compare_date>
+													<field_compare_string>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string</label>
+															<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:</displayCond>
+															<config>
+																<type>select</type>
+																<items>
+																	<numIndex index="0" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string.like</numIndex>
+																		<numIndex index="1">like</numIndex>
+																	</numIndex>
+																	<numIndex index="1" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string.begins_with</numIndex>
+																		<numIndex index="1">begins_with</numIndex>
+																	</numIndex>
+																	<numIndex index="2" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string.ends_with</numIndex>
+																		<numIndex index="1">ends_with</numIndex>
+																	</numIndex>
+																	<numIndex index="3" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string.contains</numIndex>
+																		<numIndex index="1">contains</numIndex>
+																	</numIndex>
+																	<numIndex index="4" type="array">
+																		<numIndex index="0">LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_string.equals</numIndex>
+																		<numIndex index="1">equals</numIndex>
+																	</numIndex>
+																</items>
+															</config>
+														</TCEforms>
+													</field_compare_string>
+													<field_compare_value_string>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<config>
+																<type>input</type>
+																<size>30</size>
+															</config>
+															<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:uid</displayCond>
+														</TCEforms>
+													</field_compare_value_string>
+													<field_compare_value_bool>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:deleted,hidden</displayCond>
+															<config>
+																<type>check</type>
+															</config>
+														</TCEforms>
+													</field_compare_value_bool>
+													<field_compare_rendercheck_multibool>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_rendercheck_multibool</label>
+															<displayCond>FIELD:field_compare_usersel:REQ:true &amp;&amp; FIELD:field_compare_field:IN:</displayCond>
+															<config>
+																<type>check</type>
+															</config>
+														</TCEforms>
+													</field_compare_rendercheck_multibool>
+													<field_compare_value_date>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<config>
+																<type>input</type>
+																<size>10</size>
+																<eval>date</eval>
+																<checkbox>0</checkbox>
+															</config>
+															<displayCond>FIELD:field_compare_date:!IN:smallerNow,biggerNow &amp;&amp; FIELD:field_compare_field:IN:starttime,endtime</displayCond>
+														</TCEforms>
+													</field_compare_value_date>
+													<field_compare_value_time>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<config>
+																<type>input</type>
+																<size>10</size>
+																<eval>time</eval>
+																<checkbox>0</checkbox>
+															</config>
+															<displayCond>FIELD:field_compare_field:IN:</displayCond>
+														</TCEforms>
+													</field_compare_value_time>
+													<field_compare_value_timesec>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<config>
+																<type>input</type>
+																<size>10</size>
+																<eval>timesec</eval>
+																<checkbox>0</checkbox>
+															</config>
+															<displayCond>FIELD:field_compare_field:IN:</displayCond>
+														</TCEforms>
+													</field_compare_value_timesec>
+													<field_compare_value_datetime>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<config>
+																<type>input</type>
+																<size>10</size>
+																<eval>datetime</eval>
+																<checkbox>0</checkbox>
+															</config>
+															<displayCond>FIELD:field_compare_field:IN:crdate,tstamp</displayCond>
+														</TCEforms>
+													</field_compare_value_datetime>
+													<field_compare_value_year>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<config>
+																<type>input</type>
+																<size>10</size>
+																<eval>year</eval>
+																<checkbox>0</checkbox>
+															</config>
+															<displayCond>FIELD:field_compare_field:IN:</displayCond>
+														</TCEforms>
+													</field_compare_value_year>
+													<field_compare_value_int>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<config>
+																<type>input</type>
+																<size>10</size>
+																<eval>int</eval>
+															</config>
+															<displayCond>FIELD:field_compare_field:IN:</displayCond>
+														</TCEforms>
+													</field_compare_value_int>
+													<field_compare_value_dateoffset>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_dateoffset</label>
+															<config>
+																<type>input</type>
+																<size>10</size>
+																<eval>int</eval>
+															</config>
+															<displayCond>FIELD:field_compare_date:!IN:smaller,bigger,equals &amp;&amp; FIELD:field_compare_field:IN:crdate,tstamp,starttime,endtime</displayCond>
+														</TCEforms>
+													</field_compare_value_dateoffset>
+													<field_compare_value_double>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<config>
+																<type>input</type>
+																<size>10</size>
+																<eval>double2</eval>
+															</config>
+															<displayCond>FIELD:field_compare_field:IN:</displayCond>
+														</TCEforms>
+													</field_compare_value_double>
+													<field_compare_value_cruser_id>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<config>
+																<type>group</type>
+																<internal_type>db</internal_type>
+																<allowed>be_users</allowed>
+																<size>6</size>
+																<autoSizeMax>20</autoSizeMax>
+																<minitems>0</minitems>
+																<maxitems>50</maxitems>
+															</config>
+															<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:cruser_id</displayCond>
+														</TCEforms>
+													</field_compare_value_cruser_id>
+													<field_compare_value_fe_group>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<config>
+																<type>group</type>
+																<internal_type>db</internal_type>
+																<allowed>fe_groups</allowed>
+																<size>6</size>
+																<autoSizeMax>20</autoSizeMax>
+																<minitems>0</minitems>
+																<maxitems>50</maxitems>
+															</config>
+															<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:fe_group</displayCond>
+														</TCEforms>
+													</field_compare_value_fe_group>
+													<field_compare_value_category>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+															<config>
+																<type>select</type>
+																<form_type>user</form_type>
+																<userFunc>tx_kbshop_treeview-&gt;displayCategoryTree</userFunc>
+																<treeView>1</treeView>
+																<foreign_table>tx_kbshop_category</foreign_table>
+																<langChildren>1</langChildren>
+																<size>8</size>
+																<autoSizeMax>25</autoSizeMax>
+																<minitems>0</minitems>
+																<maxitems>50</maxitems>
+															</config>
+															<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:category</displayCond>
+														</TCEforms>
+													</field_compare_value_category>
+													<field_compare_negate>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_negate</label>
+															<config>
+																<type>check</type>
+															</config>
+															<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:!IN:cruser_id,deleted,hidden,fe_group,category</displayCond>
+														</TCEforms>
+													</field_compare_negate>
+													<field_compare_defaultNone>
+														<TCEforms>
+															<exclude>1</exclude>
+															<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_defaultNone</label>
+															<config>
+																<type>check</type>
+															</config>
+															<displayCond>FIELD:field_compare_usersel:REQ:true</displayCond>
+														</TCEforms>
+													</field_compare_defaultNone>
+												</el>
+											</list_criteria_item>
+										</el>
+									</list_criteria_section>
+								</el>
+							</list_subcriteria>
+						</el>
+					</list_criteria_section>
+				</el>
+			</ROOT>
+		</criteria>
+		<form>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang.php:pi1.sheet_forms</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_submitTarget type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_forms.submitTarget</label>
+							<exclude>1</exclude>
+							<config>
+								<type>group</type>
+								<internal_type>db</internal_type>
+								<allowed>pages</allowed>
+								<size>1</size>
+								<minitems>0</minitems>
+								<maxitems>1</maxitems>
+							</config>
+						</TCEforms>
+					</field_submitTarget>
+					<list_forms_section type="array">
+						<type>array</type>
+						<section>1</section>
+						<el type="array">
+							<list_form_item type="array">
+								<type>array</type>
+								<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_forms.list_forms_section.list_form_item</label>
+								<tx_templavoila type="array">
+									<title>Form table</title>
+								</tx_templavoila>
+								<el type="array">
+									<field_form_name type="array">
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_forms.list_forms_section.list_form_item.form_name</label>
+											<exclude>1</exclude>
+											<config>
+												<type>input</type>
+												<size>30</size>
+												<eval>req,alphanum_x</eval>
+											</config>
+										</TCEforms>
+									</field_form_name>
+									<field_form_table type="array">
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_forms.list_forms_section.list_form_item.form_table</label>
+											<exclude>1</exclude>
+											<config>
+												<type>select</type>
+												<foreign_table>tx_kbshop_category</foreign_table>
+												<foreign_table_where>AND parent=0 AND virtual=1</foreign_table_where>
+												<size>1</size>
+												<minitems>0</minitems>
+												<maxitems>1</maxitems>
+											</config>
+										</TCEforms>
+									</field_form_table>
+									<field_save_table type="array">
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_forms.list_forms_section.list_form_item.save_table</label>
+											<exclude>1</exclude>
+											<config>
+												<type>select</type>
+												<foreign_table>tx_kbshop_category</foreign_table>
+												<foreign_table_where>AND parent=0 AND virtual=0</foreign_table_where>
+												<size>1</size>
+												<minitems>0</minitems>
+												<maxitems>1</maxitems>
+											</config>
+										</TCEforms>
+									</field_save_table>
+									<field_transferts type="array">
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_forms.list_fieldmapping_section.list_fieldmapping_item.field_transferts</label>
+											<exclude>1</exclude>
+											<config>
+												<type>text</type>
+												<cols>40</cols>
+												<rows>10</rows>
+											</config>
+										</TCEforms>
+									</field_transferts>
+								</el>
+							</list_form_item>
+						</el>
+					</list_forms_section>
+				</el>
+			</ROOT>
+		</form>
+		<search>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang.php:pi1.sheet_search</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_search_page type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_search.search_page</label>
+							<exclude>1</exclude>
+							<config>
+								<type>group</type>
+								<internal_type>db</internal_type>
+								<allowed>pages</allowed>
+								<size>1</size>
+								<minitems>0</minitems>
+								<maxitems>1</maxitems>
+							</config>
+						</TCEforms>
+					</field_search_page>
+					<field_show_searchbox type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_search.show_searchbox</label>
+							<exclude>1</exclude>
+							<config>
+								<type>check</type>
+							</config>
+							<displayCond>FIELD:field_search_page:REQ:true</displayCond>
+						</TCEforms>
+					</field_show_searchbox>
+				</el>
+			</ROOT>
+		</search>
+	</sheets>
+</T3DataStructure>

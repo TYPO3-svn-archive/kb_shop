@@ -1,0 +1,152 @@
+How to extend KB-Shop.
+
+
+
+
+1. Adding new property types
+============================
+
+
+To add a new property type like "String/Database Relation/Files/etc." you have
+to add the new property in various places.
+
+
+1.1 tca_property.php
+--------------------
+
+This is the TCA defintion file for a property. You have to add your new type
+to the 'type' field definition in order for the new type to show up in the
+type field. You'll have to assign the property a number here which will follow
+the property through the whole system.
+
+  1.1.1 'type' field
+--------------------
+
+Add the new field to the list of items and assign it a not-used-number. Also
+add the new label to the locallang_db.php file.
+
+  1.1.2 'flexform' field
+------------------------
+
+Add the new field to the list of ds-configuration files and define a file-name
+for the DS XML file which will contain the DS configuration of the property.
+
+
+1.2 DS XML file
+---------------
+
+Copy one of the existing DS XML files in the res folder to the name of the new
+properties DS XML file (which you assigned in the previous step) and modifiy
+it to your needs. This DS will get shown when editing a property of the new
+type in the Flexform of the property.
+When changing the locallang labels don't forget to also add them in the
+locallang_db.php file.
+
+1.3 Property TCA Language Modes: class.tx_kbshop_itemproc.php
+-------------------------------------------------------------
+
+In this file there is one "TYPEADD" comment (line 69). Here you have to add
+you property if it requires to remove the "prefixLangTitle" language Mode from
+the select box - or others.
+
+
+1.4 TCA-Generation: class.tx_kbshop_tcagen.php
+----------------------------------------------
+
+In this file the type must get added at some places. These lines are marked
+with a "TYPEADD" comment.
+
+  1.4.1 $renderFunc class variable (line 44)
+--------------------------------------------
+
+This is a class variable which holds the name of the responsible TCA rendering
+function for an specific property type.
+
+  1.4.2 TCA render method invocation (line 108)
+-----------------------------------------------
+
+Here the render method get's invocated. Check that the $t variable (the number
+of the type as specified in tca_property.php) is in the checked bounds and
+increase the upper bound dependend on how many property types you add.
+
+  1.4.3 TCA render method definition (line 452)
+-----------------------------------------------
+
+Add methods with the names of the values you added to the $renderFunc array in
+step 1.3.1 to the class. See methods above line 452 for an example.
+
+
+
+1.5 SQL-Generation: class.tx_kbshop_sqlengine.php
+-------------------------------------------------
+
+In this file there is one place where you have to add the new property. In
+line 339 there starts a switch statement:
+        switch ($fArr['type'])  {
+At the bottom of this switch statement there is again a "TYPEADD" comment. Add
+your new property type here and define the sql which should get created for
+it.
+
+
+1.6 PI Plugin DS XML Generation: class.tx_kbshop_tcagen_pi1.php
+---------------------------------------------------------------
+
+There is also one place here marked with a "TYPEADD" comment (line 234) at
+which methods for rendering the FE Plugin DS XML form which get's used to
+configure the plugin in the BE.
+
+These methods define which fields of the responsible DS file in the res/
+directory are visible (when creating criterias) for fields with the specific
+type.
+
+See the example above the mentioned line to get an idea what these methods
+should do.
+
+If you decide to set the displayCond property of some new fields you will have
+to add those fields to the file res/flexform_ds_pi1.xml (or
+res/flexform_ds_pi2.xml for the searchable version of the plugin).
+
+
+1.7 DS XML for FE plugin
+------------------------
+
+Like mentioned in the above step you have to edit the files
+res/flexform_ds_pi1.php and res/flexform/ds_pi2.ph and add new fields to it if
+you set display conditions for fields with a new name in the above step. It
+would also be possible to reuse already existing fields and just add a
+condition to show it also for the newly introduced property type.
+
+
+1.8 pi1 FE plugin class: pi1/class.tx_kbshop_pi1.php
+----------------------------------------------------
+
+For order to work properly in the FE the new property has to get added at some
+places in the FE plugin.
+
+
+  1.8.1 method "getFieldRenderValue" (line 1237)
+------------------------------------------------
+
+Here the value shall get returned which get's outputted into the marker of the
+field when no special TS stdWrap configuration has been configured for the
+field.
+
+  1.8.2 method "getCriteriaOption" (line 2029)
+----------------------------------------------
+
+Here you have to add code which returns the key and label for a value in the
+criteria selectors.
+
+  1.8.3 method "setDefinedCriteria (line 2491)
+----------------------------------------------
+
+Here you have to add code which defines how the property type get's compared
+to the values selected in the criteria selector.
+
+
+
+
+
+
+
+

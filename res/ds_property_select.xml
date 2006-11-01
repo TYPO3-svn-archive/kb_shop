@@ -1,0 +1,51 @@
+<T3DataStructure>
+	<meta type="array">
+		<langDisable type="integer">1</langDisable>
+	</meta>
+	<sheets>
+		<sDEF>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang_db.php:ds_property.sheet_default</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<list_value_section type="array">
+						<type>array</type>
+						<section>1</section>
+						<el type="array">
+							<list_value_field type="array">
+								<type>array</type>
+								<tx_templavoila type="array">
+									<title>Value</title>
+								</tx_templavoila>
+								<el type="array">
+									<field_value type="array">
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_select.value</label>
+											<exclude>1</exclude>
+											<config>
+												<type>input</type>
+												<size>30</size>
+											</config>
+										</TCEforms>
+									</field_value>
+									<field_index type="array">
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_select.index</label>
+											<exclude>1</exclude>
+											<config>
+												<type>user</type>
+												<userFunc>tx_kbshop_itemproc->setIndex</userFunc>
+											</config>
+										</TCEforms>
+									</field_index>
+								</el>
+							</list_value_field>
+						</el>
+					</list_value_section>
+				</el>
+			</ROOT>
+		</sDEF>
+	</sheets>
+</T3DataStructure>

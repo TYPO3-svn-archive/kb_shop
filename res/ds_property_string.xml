@@ -1,0 +1,77 @@
+<T3DataStructure>
+	<meta type="array">
+		<langDisable type="integer">1</langDisable>
+	</meta>
+	<sheets>
+		<sDEF>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang_db.php:ds_property.sheet_settings</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_size type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_string.size</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>10</size>
+								<eval>int</eval>
+								<range>
+									<upper>200</upper>
+									<lower>1</lower>
+								</range>
+								<default>30</default>
+							</config>
+						</TCEforms>
+					</field_size>
+					<field_max type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_string.max</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>10</size>
+								<eval>int</eval>
+								<range>
+									<upper>200</upper>
+									<lower>1</lower>
+								</range>
+								<default>200</default>
+							</config>
+						</TCEforms>
+					</field_max>
+					<field_default type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_string.default</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>30</size>
+							</config>
+						</TCEforms>
+					</field_default>
+					<field_required type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_string.required</label>
+							<exclude>1</exclude>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</field_required>
+					<field_email type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_string.email</label>
+							<exclude>1</exclude>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</field_email>
+				</el>
+			</ROOT>
+		</sDEF>
+	</sheets>
+</T3DataStructure>

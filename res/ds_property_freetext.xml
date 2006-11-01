@@ -1,0 +1,49 @@
+<T3DataStructure>
+	<meta type="array">
+		<langDisable type="integer">1</langDisable>
+	</meta>
+	<sheets>
+		<sDEF>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang_db.php:ds_property.sheet_settings</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_rows type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_freetext.rows</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>10</size>
+								<eval>int</eval>
+								<range>
+									<upper>2000</upper>
+									<lower>1</lower>
+								</range>
+								<default>5</default>
+							</config>
+						</TCEforms>
+					</field_rows>
+					<field_cols type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_freetext.cols</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>10</size>
+								<eval>int</eval>
+								<range>
+									<upper>2000</upper>
+									<lower>1</lower>
+								</range>
+								<default>30</default>
+							</config>
+						</TCEforms>
+					</field_cols>
+				</el>
+			</ROOT>
+		</sDEF>
+	</sheets>
+</T3DataStructure>

@@ -1,0 +1,115 @@
+<T3DataStructure>
+	<meta type="array">
+		<langDisable type="integer">1</langDisable>
+	</meta>
+	<sheets>
+		<sDEF>
+			<ROOT>
+				<TCEforms>
+					<sheetTitle>LLL:EXT:kb_shop/locallang_db.php:ds_property.sheet_default</sheetTitle>
+				</TCEforms>
+				<type>array</type>
+				<el>
+					<field_size type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_file.size</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<eval>int</eval>
+								<size>10</size>
+								<max>200</max>
+								<min>1</min>
+								<default>1</default>
+							</config>
+						</TCEforms>
+					</field_size>
+					<field_maxitems type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_file.maxitems</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<eval>int</eval>
+								<size>10</size>
+								<max>200</max>
+								<min>1</min>
+								<default>1</default>
+							</config>
+						</TCEforms>
+					</field_maxitems>
+					<field_autoSizeMax type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_file.autoSizeMax</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<eval>int</eval>
+								<size>10</size>
+								<max>200</max>
+								<min>0</min>
+								<default>0</default>
+							</config>
+						</TCEforms>
+					</field_autoSizeMax>
+					<field_allowed type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_file.allowed</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>30</size>
+								<default>gif,png,jpg,jpeg</default>
+							</config>
+						</TCEforms>
+					</field_allowed>
+					<field_disallowed type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_file.disallowed</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>30</size>
+								<default>php,php3,php4,php5,cgi,pl,py,sh</default>
+							</config>
+						</TCEforms>
+					</field_disallowed>
+					<field_maxfilesize type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_file.maxfilesize</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<eval>int</eval>
+								<size>10</size>
+								<max>200000</max>
+								<min>1</min>
+								<default>10</default>
+							</config>
+						</TCEforms>
+					</field_maxfilesize>
+					<field_showthumbs type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_file.showthumbs</label>
+							<exclude>1</exclude>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</field_showthumbs>
+					<field_uploaddir type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_file.uploaddir</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>30</size>
+								<default>uploads/tx_kbshop/</default>
+							</config>
+						</TCEforms>
+					</field_uploaddir>
+				</el>
+			</ROOT>
+		</sDEF>
+	</sheets>
+</T3DataStructure>
