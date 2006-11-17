@@ -41,6 +41,15 @@
 							</config>
 						</TCEforms>
 					</field_elements>
+					<field_quickselect type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.quickselect</label>
+							<exclude>1</exclude>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</field_quickselect>
 					<field_table type="array">
 						<TCEforms>
 							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.dbtable</label>

@@ -58,7 +58,7 @@ CREATE TABLE tx_kbshop_category (
 	alias tinytext NOT NULL,
 	virtual tinyint(4) unsigned DEFAULT '0' NOT NULL,
 	allowOnPages tinyint(4) unsigned DEFAULT '0' NOT NULL,
-	labelProperty int(11) unsigned DEFAULT '0' NOT NULL,
+	labelProperty tinytext NOT NULL,
 	sortingProperty int(11) DEFAULT '0' NOT NULL,
 	sortingDirection tinyint(4) unsigned DEFAULT '0' NOT NULL,
 	parent int(11) unsigned DEFAULT '0' NOT NULL,

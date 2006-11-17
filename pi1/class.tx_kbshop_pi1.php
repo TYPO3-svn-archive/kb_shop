@@ -201,6 +201,10 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			$fatalError .= $e;
 		}
 
+		if ($this->conf['stdWrap.'])	{	
+			$content = $this->cObj->stdWrap($content, $this->conf['stdWrap.']);
+		}
+
 		if (intval($this->conf['dontWrapInBaseClass']))	{
 			$GLOBALS['TYPO3_DB']->debugOutput = $this->saveSQLdebug;
 			return $fatalError?$fatalError:$content;
@@ -595,6 +599,10 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		}
 
 		$this->localcObj->LOAD_REGISTER('', 'RESTORE_REGISTER');
+		
+		if ($this->conf[$this->tskey.'.']['stdWrap.'])	{	
+			$content = $this->cObj->stdWrap($content, $this->conf[$this->tskey.'.']['stdWrap.']);
+		}
 
 		return array($content, '');
 	}
@@ -1210,8 +1218,8 @@ class tx_kbshop_pi1 extends tslib_pibase {
 						$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid_foreign', $mmtable, 'uid_local='.$row['uid'], '', 'sorting');
 						$str = '';
 						if ($res)	{
-							while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
-								$str .= ($str?',':'').$row['uid_foreign'];
+							while ($tmprow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
+								$str .= ($str?',':'').$tmprow['uid_foreign'];
 							}
 							$GLOBALS['TYPO3_DB']->sql_free_result($res);
 						}
@@ -3026,14 +3034,18 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			$tableVals = $this->data[$table];
 				// Fake access to virtual tables.
 			$nTableVals = array();
-			foreach ($tableVals as $id => $row)	{
-				$tce->recInsertAccessCache[$table][$row['pid']] = 1;
-				$tce->recUpdateAccessCache[$table][$id] = 1;
-				$nTableVals['NEW'.$id] = $row;
-			}
 			$tmpUser = $this->formTableUsers[$table];
 			$sBEU = $GLOBALS['BE_USER'];
 			$GLOBALS['BE_USER'] = $tmpUser;
+			foreach ($tableVals as $id => $row)	{
+				$tce->recInsertAccessCache[$table][$row['pid']] = 1;
+				$tce->recUpdateAccessCache[$table][$id] = 1;
+				if (!$row['pid'])	{
+					$newRow = $this->initTableRow($table, $id, $this->conf[$this->tskey.'.']['forms.']);
+					$row = t3lib_div::array_merge_recursive_overrule($newRow, $row);
+				}
+				$nTableVals['NEW'.$id] = $row;
+			}
 			$tmpData = array();
 			$tmpData[$table] = $nTableVals;
 			$tce->BE_USER = $tmpUser;

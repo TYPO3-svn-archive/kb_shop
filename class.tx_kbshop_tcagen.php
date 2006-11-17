@@ -373,6 +373,14 @@ class tx_kbshop_tcagen	{
 		} elseif ($sf = $GLOBALS['TCA'][$table]['ctrl']['default_sortby'])	{
 			$config['foreign_table_where'] .= ' '.$sf;
 		}
+		if (($sortf = $GLOBALS['TCA'][$table]['ctrl']['sortby'])||($sortf = $GLOBALS['TCA'][$table]['ctrl']['default_sortby']))	{
+//			$config ['foreign_table_where'] .= ' ORDER BY '.$table.'.'.$sortf;
+		}
+		if (strlen($l = $xmlArr['emptyLabel'][$this->vDEF]))	{
+			$config['items'] = array(
+				array($l, 0),		// TODO: Add multilanguage support
+			);
+		}
 		if (strlen($xmlArr['field_elements'][$this->vDEF]))	{
 			$el = t3lib_div::trimExplode(',', $xmlArr['field_elements'][$this->vDEF], 1);
 			$ua = array();
@@ -384,17 +392,22 @@ class tx_kbshop_tcagen	{
 					$ua[] = $u;
 				}
 			}
+			$qs = intval($xmlArr['field_quickselect'][$this->vDEF]);
 			if (count($ua))	{
-				$config ['foreign_table_where'] .= ' AND '.$table.'.uid IN ('.implode(',', $ua).')';
+				$not = $qs?'NOT':'';
+				$config ['foreign_table_where'] .= ' AND '.$table.'.uid '.$not.' IN ('.implode(',', $ua).')';
 			}
-		}
-		if (($sortf = $GLOBALS['TCA'][$table]['ctrl']['sortby'])||($sortf = $GLOBALS['TCA'][$table]['ctrl']['default_sortby']))	{
-//			$config ['foreign_table_where'] .= ' ORDER BY '.$table.'.'.$sortf;
-		}
-		if (strlen($l = $xmlArr['emptyLabel'][$this->vDEF]))	{
-			$config['items'] = array(
-				array($l, 0),		// TODO: Add multilanguage support
-			);
+			if ($qs&&count($ua))	{
+				if (!is_array($config['items']))	{
+					$config['items'] = array();
+				}
+				foreach ($ua as $elUid)	{
+					$elRec = tx_kbshop_abstract::getRecord($table, $elUid);
+					$elTitle = tx_kbshop_abstract::getRecordTitle($table, $elRec);
+					$config['items'][] = array($elTitle, $elUid);
+				}
+				$config['items'][] = array('----------------------', '--div--');
+			}
 		}
 		if (($config['maxitems']>1)&&!$preConfig['noMM'])	{
 			$config['MM'] = $this->config->mmRelationTablePrefix.$prop['__key'].$this->config->mmRelationTablePostfix;

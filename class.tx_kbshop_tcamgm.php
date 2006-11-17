@@ -66,12 +66,20 @@ class tx_kbshop_tcamgm	{
 				foreach ($tables as $trow)	{
 					$tkey = tx_kbshop_misc::getKey($trow);
 					$tcaFile = $this->config->configExtBasePath.'tca_'.$tkey.'.php';
-					$labelProp = tx_kbshop_abstract::getRecord($this->config->propertiesTable, $trow['labelProperty']);
+					$labels = t3lib_div::trimExplode(',', $trow['labelProperty']);
+					$labelProp = tx_kbshop_abstract::getRecord($this->config->propertiesTable, $labels[0]);
 					if (is_array($labelProp))	{
 						$lkey = tx_kbshop_misc::getKey($labelProp);
 						$label = $this->config->fieldPrefix.$lkey;
 					} else	{
 						$label = 'uid';
+					}
+					$labels_alt = '';
+					foreach ($labels as $idx => $lab)	{
+						if (!$idx)	continue;
+						$lProp = tx_kbshop_abstract::getRecord($this->config->propertiesTable, $lab);
+						$lkey = tx_kbshop_misc::getKey($lProp);
+						$labels_alt .= (strlen($labels_alt)?',':'').$this->config->fieldPrefix.$lkey;
 					}
 					$this->LLBuffer[0]['table_'.$tkey] = $trow['title'];
 					$localTables = tx_kbshop_abstract::getRecordsByField($this->config->categoriesTable, 'l18n_parent', $trow['uid']);
@@ -80,6 +88,12 @@ class tx_kbshop_tcamgm	{
 							$this->LLBuffer[$ltrow['sys_language_uid']]['table_'.$tkey] = $ltrow['title'];
 						}
 					}
+						// --- T3-BUGFIX --- begin ---
+					$alabel = $label;
+					if (strlen($labels_alt))	{
+						$label = 'uid';
+					}
+						// --- T3-BUGFIX --- end ---
 					$subtca = array(
 						'ctrl' => Array (
 //							'title' => tx_kbshop_abstract::csConv($trow['title'], $this->config->currentCharset, 'iso-8859-1'),
@@ -104,6 +118,10 @@ class tx_kbshop_tcamgm	{
 							'fe_admin_fieldList' => 'hidden, starttime, endtime, fe_group, title',
 						)
 					);
+					if (strlen($labels_alt))	{
+						$subtca['ctrl']['label_alt'] = $alabel.','.$labels_alt;
+						$subtca['ctrl']['label_alt_force'] = 1;
+					}
 					if (count($localTables))	{
 							// Localize table.
 						$subtca['ctrl']['languageField'] = 'sys_language_uid';

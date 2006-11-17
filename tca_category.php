@@ -108,9 +108,9 @@ $TCA['tx_kbshop_category'] = Array (
 				'type' => 'select',
 				'foreign_table' => 'tx_kbshop_property',
 				'foreign_table_where' => ' AND tx_kbshop_property.pid IN (0###PAGE_TSCONFIG_STR###)',
-				'size' => 1,
+				'size' => 5,
 				'minitems' => 0,
-				'maxitems' => 1,
+				'maxitems' => 4,
 			),
 		),
 		'sortingProperty' => Array (		
@@ -279,11 +279,11 @@ $TCA['tx_kbshop_category'] = Array (
 		),
 	),
 	'types' => Array (
-		'0' => Array('showitem' => 'hidden;;1;;1-1-1, title;;;;2-2-2, alias;;2, sys_language_uid;;3;;3-3-3, t3ver_label, parent;;;;4-4-4, image;;;;5-5-, icon, description;;;richtext[cut|copy|paste|formatblock|textcolor|bold|italic|underline|left|center|right|orderedlist|unorderedlist|outdent|indent|link|table|image|line|chMode]:rte_transform[mode=ts_css|imgpath=uploads/tx_kbshop/rte/], properties'),
+		'0' => Array('showitem' => 'hidden;;1;;1-1-1, title;;;;2-2-2, alias;;2, labelProperty, sys_language_uid;;3;;3-3-3, t3ver_label, parent;;;;4-4-4, image;;;;5-5-, icon, description;;;richtext[cut|copy|paste|formatblock|textcolor|bold|italic|underline|left|center|right|orderedlist|unorderedlist|outdent|indent|link|table|image|line|chMode]:rte_transform[mode=ts_css|imgpath=uploads/tx_kbshop/rte/], properties'),
 	),
 	'palettes' => Array (
 		'1' => Array('showitem' => 'starttime, endtime, fe_group'),
-		'2' => Array('showitem' => 'virtual, allowOnPages, labelProperty, sortingProperty, sortingDirection'),
+		'2' => Array('showitem' => 'virtual, allowOnPages, sortingProperty, sortingDirection'),
 		'3' => Array('showitem' => 'l18n_parent, l18n_diffsource'),
 	),
 );
