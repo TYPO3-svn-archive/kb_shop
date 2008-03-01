@@ -10,83 +10,86 @@
 				</TCEforms>
 				<type>array</type>
 				<el>
-					<field_min type="array">
+					<field_userfunc type="array">
 						<TCEforms>
-							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_integer.min</label>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_user.userFunc</label>
 							<exclude>1</exclude>
 							<config>
 								<type>input</type>
-								<size>10</size>
-								<eval>int</eval>
-								<range>
-									<upper>1000000000</upper>
-									<lower>-1000000000</lower>
-								</range>
-								<default>-1000000000</default>
-							</config>
-						</TCEforms>
-					</field_min>
-					<field_max type="array">
-						<TCEforms>
-							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_integer.max</label>
-							<exclude>1</exclude>
-							<config>
-								<type>input</type>
-								<size>10</size>
-								<eval>int</eval>
-								<range>
-									<upper>1000000000</upper>
-									<lower>-1000000000</lower>
-								</range>
-								<default>1000000000</default>
-							</config>
-						</TCEforms>
-					</field_max>
-					<field_default type="array">
-						<TCEforms>
-							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_integer.default</label>
-							<exclude>1</exclude>
-							<config>
-								<type>input</type>
-								<size>10</size>
+								<size>30</size>
 								<default></default>
 							</config>
 						</TCEforms>
-					</field_default>
-					<field_size type="array">
+					</field_userfunc>
+					<field_sqlfield type="array">
 						<TCEforms>
-							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_string.size</label>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_user.sqlfield</label>
 							<exclude>1</exclude>
+							<config>
+								<type>select</type>
+								<items>
+									<numIndex index="0" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang_db.php:ds_property_user.sqlfield.varchar</numIndex>
+										<numIndex index="1">varchar</numIndex>
+									</numIndex>
+									<numIndex index="1" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang_db.php:ds_property_user.sqlfield.int</numIndex>
+										<numIndex index="1">int</numIndex>
+									</numIndex>
+									<numIndex index="2" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang_db.php:ds_property_user.sqlfield.tinyint</numIndex>
+										<numIndex index="1">tinyint</numIndex>
+									</numIndex>
+									<numIndex index="3" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang_db.php:ds_property_user.sqlfield.tinytext</numIndex>
+										<numIndex index="1">tinytext</numIndex>
+									</numIndex>
+									<numIndex index="4" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang_db.php:ds_property_user.sqlfield.mediumtext</numIndex>
+										<numIndex index="1">mediumtext</numIndex>
+									</numIndex>
+									<numIndex index="5" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang_db.php:ds_property_user.sqlfield.text</numIndex>
+										<numIndex index="1">text</numIndex>
+									</numIndex>
+									<numIndex index="6" type="array">
+										<numIndex index="0">LLL:EXT:kb_shop/locallang_db.php:ds_property_user.sqlfield.blob</numIndex>
+										<numIndex index="1">blob</numIndex>
+									</numIndex>
+								</items>
+								<size>1</size>
+								<max>1</max>
+								<min>0</min>
+							</config>
+						</TCEforms>
+					</field_sqlfield>
+					<field_sqlsize>
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_user.sqlsize</label>
+							<exclude>1</exclude>
+							<displayCond>FIELD:field_sqlfield:IN:varchar,int,tinyint</displayCond>
 							<config>
 								<type>input</type>
-								<size>10</size>
+								<size>5</size>
 								<eval>int</eval>
+								<default>11</default>
 								<range>
-									<upper>200</upper>
+									<upper>255</upper>
 									<lower>1</lower>
 								</range>
-								<default>10</default>
 							</config>
 						</TCEforms>
-					</field_size>
-					<field_required type="array">
+					</field_sqlsize>
+					<field_sqlsigned>
 						<TCEforms>
-							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_integer.required</label>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_user.sqlsigned</label>
 							<exclude>1</exclude>
+							<displayCond>FIELD:field_sqlfield:IN:int,tinyint</displayCond>
 							<config>
 								<type>check</type>
 							</config>
 						</TCEforms>
-					</field_required>
-					<field_readonly type="array">
-						<TCEforms>
-							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_integer.readonly</label>
-							<exclude>1</exclude>
-							<config>
-								<type>check</type>
-							</config>
-						</TCEforms>
-					</field_readonly>
+					</field_sqlsigned>
 					<field_wizard_type type="array">
 						<TCEforms>
 							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_integer.wizard_type</label>

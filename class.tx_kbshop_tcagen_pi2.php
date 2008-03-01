@@ -41,7 +41,21 @@ class ux_tx_kbshop_tcagen_pi extends tx_kbshop_tcagen_pi	{
 	}
 
 	function renderTCA__ItemSetSearch($prop)	{
-		$this->xml['sheets']['search']['ROOT']['el']['list_searchfield_section']['el']['list_searchfield_item']['el']['field_search_field']['TCEforms']['config']['items'][] = array($prop['title'], $this->config->origFieldPrefix.$prop['__key']);
+		$title = $this->labelPrefix[0].$prop['title'];
+		$lll = ($this->lllPrefix?($this->lllPrefix.'__'):'').$prop['__key'];
+		$this->LLBuffer[0]['pi_'.$lll] = $title;
+		$langProps = tx_kbshop_abstract::getRecordsByField($this->config->propertiesTable, 'l18n_parent', $prop['uid'], 'sys_language_uid!=0');
+		if (is_array($langProps))	{
+			foreach ($langProps as $langProp)	{
+//				print_r($langProp);
+//				echo "TODO";
+//				exit();
+				$title = $this->labelPrefix[$langProp['sys_language_uid']].$langProp['title'];
+				$this->LLBuffer[$langProp['sys_language_uid']]['pi_'.$lll] = $title;
+			}
+		}
+
+		$this->xml['sheets']['search']['ROOT']['el']['list_searchfield_section']['el']['list_searchfield_item']['el']['field_search_field']['TCEforms']['config']['items'][] = array('LLL:EXT:'.$this->config->configExt.'/locallang_dyn.xml:pi_'.$lll, $this->config->fieldPrefix.$prop['__key']);
 	}
 
 

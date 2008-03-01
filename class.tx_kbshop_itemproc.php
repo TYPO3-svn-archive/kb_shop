@@ -87,17 +87,19 @@ class tx_kbshop_itemproc	{
 			case 9:		// Db-rel
 			case 10:		// multi-check
 			case 11:		// file
+			case 100:		// file
+			case 17:		// file
 				unset($param['items'][4]);
 			break;
 			case 2:		// Text
 			case 3:		// RTE
 			case 8:		// String 
+			case 16:		// String 
 			break;
 			case '':
 			break;
 			default:
 				echo 'Undefined property type "'.$param['row']['type'].'" ! ('.__FILE__.':'.__CLASS__.'->'.__FUNCTION__.' @ '.__LINE__.')';
-				exit();
 			break;
 		}
 		return $param;
@@ -110,7 +112,7 @@ class tx_kbshop_itemproc	{
 		}
 		if (intval($PA['itemFormElValue']))	{
 			$GLOBALS['TYPO3_TEMP_VARS']['EXT']['kb_shop']['usedIndexes'][] = intval($PA['itemFormElValue']);
-			return '<input type="hidden" name="'.$PA['itemFormElName'].'" value="'.intval($PA['itemFormElValue']).'" />'.chr(10);
+			return '<input type="hidden" name="'.$PA['itemFormElName'].'" value="'.intval($PA['itemFormElValue']).'" />'.intval($PA['itemFormElValue']).chr(10);
 		}
 		$flex = t3lib_div::xml2array($PA['row']['flexform']);
 		$idx = '';
@@ -124,16 +126,17 @@ class tx_kbshop_itemproc	{
 					}
 				}
 			}
-			$set = array_unique(array_merge($set, $GLOBALS['TYPO3_TEMP_VARS']['EXT']['kb_shop']['usedIndexes']));
+			$set = array_unique(array_merge($set, is_array($GLOBALS['TYPO3_TEMP_VARS']['EXT']['kb_shop']['usedIndexes'])?$GLOBALS['TYPO3_TEMP_VARS']['EXT']['kb_shop']['usedIndexes']:array()));
 			if (count($set))	{
 				sort($set);
-				$last = array_pop($set)+1;
+				$setcopy = $set;
+				$last = array_pop($setcopy)+1;
 			} else	{
 				$last = 1;
 			}
 			$set[] = $last;
 			$GLOBALS['TYPO3_TEMP_VARS']['EXT']['kb_shop']['usedIndexes'] = $set;
-			return '<input type="hidden" name="'.$PA['itemFormElName'].'" value="'.$last.'" />'.chr(10);
+			return '<input type="hidden" name="'.$PA['itemFormElName'].'" value="'.$last.'" />'.$last.chr(10);
 		}
 		return '';
 	}

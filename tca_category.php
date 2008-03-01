@@ -6,7 +6,7 @@ if (!defined ('TYPO3_MODE')) 	die ('Access denied.');
 $TCA['tx_kbshop_category'] = Array (
 	'ctrl' => $TCA['tx_kbshop_category']['ctrl'],
 	'interface' => Array (
-		'showRecordFieldList' => 'hidden,starttime,endtime,fe_group,title,alias,virtual,allowOnPages,labelProperty,sortingProperty,sortingDirection,parent,image,icon,description,properties'
+		'showRecordFieldList' => 'hidden,starttime,endtime,fe_group,title,alias,virtual,allowOnPages,fecruser_prop,fecruser_lock,labelProperty,sortingProperty,sortingDirection,parent,image,icon,description,properties,tcaTable'
 	),
 	'feInterface' => $TCA['tx_kbshop_category']['feInterface'],
 	'columns' => Array (
@@ -86,6 +86,23 @@ $TCA['tx_kbshop_category'] = Array (
 			'label' => 'LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.virtual',		
 			'displayCond' => 'FIELD:parent:REQ:false',
 			'config' => Array (
+				'type' => 'select',	
+				'size' => 1,
+				'items' => array(
+					array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.virtual.0', 0),
+					array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.virtual.1', 1),
+					array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.virtual.2', 2),
+				),
+				'minitems' => 0,
+				'maxitems' => 1,
+			)
+		),
+		'tcaTable' => Array (		
+			'exclude' => 1,		
+			'l10n_mode' => 'exclude',
+			'label' => 'LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.tcatable',		
+			'displayCond' => 'FIELD:parent:REQ:false',
+			'config' => Array (
 				'type' => 'check',	
 			)
 		),
@@ -108,7 +125,7 @@ $TCA['tx_kbshop_category'] = Array (
 				'type' => 'select',
 				'foreign_table' => 'tx_kbshop_property',
 				'foreign_table_where' => ' AND tx_kbshop_property.pid IN (0###PAGE_TSCONFIG_STR###)',
-				'size' => 5,
+				'size' => 15,
 				'minitems' => 0,
 				'maxitems' => 4,
 			),
@@ -118,7 +135,6 @@ $TCA['tx_kbshop_category'] = Array (
 			'l10n_mode' => 'exclude',
 			'label' => 'LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.sortingProperty',		
 			'displayCond' => 'FIELD:parent:REQ:false',
-			'exclude' => 1,		
 			'config' => Array (
 				'type' => 'select',
 				'foreign_table' => 'tx_kbshop_property',
@@ -145,6 +161,40 @@ $TCA['tx_kbshop_category'] = Array (
 				'items' => array(
 					array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.sortingDirection.ascending', 0),
 					array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.sortingDirection.descending', 1),
+				),
+				'minitems' => 0,
+				'maxitems' => 1,
+			),
+		),
+		'fecruser_prop' => Array (		
+			'exclude' => 1,		
+			'l10n_mode' => 'exclude',
+			'label' => 'LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.fecruser_prop',		
+			'displayCond' => 'FIELD:parent:REQ:false',
+			'config' => Array (
+				'type' => 'select',
+				'foreign_table' => 'tx_kbshop_property',
+				'foreign_table_where' => ' AND tx_kbshop_property.pid IN (0###PAGE_TSCONFIG_STR###)',
+				'size' => 1,
+				'items' => array(
+					array('None', 0),
+				),
+				'minitems' => 0,
+				'maxitems' => 1,
+			),
+		),
+		'fecruser_lock' => Array (		
+			'exclude' => 1,		
+			'l10n_mode' => 'exclude',
+			'label' => 'LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.fecruser_lock',		
+			'displayCond' => 'FIELD:parent:REQ:false',
+			'config' => Array (
+				'type' => 'select',
+				'foreign_table' => 'tx_kbshop_property',
+				'foreign_table_where' => ' AND tx_kbshop_property.pid IN (0###PAGE_TSCONFIG_STR###)',
+				'size' => 1,
+				'items' => array(
+					array('None', 0),
 				),
 				'minitems' => 0,
 				'maxitems' => 1,
@@ -238,6 +288,22 @@ $TCA['tx_kbshop_category'] = Array (
 //				'MM' => 'tx_kbshop_category_properties_mm',
 			),
 		),
+		'noTabs' => Array (		
+			'exclude' => 1,		
+			'l10n_mode' => 'exclude',
+			'label' => 'LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.noTabs',
+			'config' => Array (
+				'type' => 'check',	
+			)
+		),
+		'saveAndNew' => Array (		
+			'exclude' => 1,		
+			'l10n_mode' => 'exclude',
+			'label' => 'LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_category.saveAndNew',
+			'config' => Array (
+				'type' => 'check',	
+			)
+		),
 		'sys_language_uid' => Array (
 			'exclude' => 1,
 			'label' => 'LLL:EXT:lang/locallang_general.php:LGL.language',
@@ -279,12 +345,14 @@ $TCA['tx_kbshop_category'] = Array (
 		),
 	),
 	'types' => Array (
-		'0' => Array('showitem' => 'hidden;;1;;1-1-1, title;;;;2-2-2, alias;;2, labelProperty, sys_language_uid;;3;;3-3-3, t3ver_label, parent;;;;4-4-4, image;;;;5-5-, icon, description;;;richtext[cut|copy|paste|formatblock|textcolor|bold|italic|underline|left|center|right|orderedlist|unorderedlist|outdent|indent|link|table|image|line|chMode]:rte_transform[mode=ts_css|imgpath=uploads/tx_kbshop/rte/], properties'),
+		'0' => Array('showitem' => 'hidden;;1;;1-1-1, title;;;;2-2-2, alias;;2, noTabs;;4, fecruser_prop;;5, labelProperty, sys_language_uid;;3;;3-3-3, t3ver_label, parent;;;;4-4-4, image;;;;5-5-, icon, description;;;richtext[cut|copy|paste|formatblock|textcolor|bold|italic|underline|left|center|right|orderedlist|unorderedlist|outdent|indent|link|table|image|line|chMode]:rte_transform[mode=ts_css|imgpath=uploads/tx_kbshop/rte/], properties'),
 	),
 	'palettes' => Array (
 		'1' => Array('showitem' => 'starttime, endtime, fe_group'),
-		'2' => Array('showitem' => 'virtual, allowOnPages, sortingProperty, sortingDirection'),
+		'2' => Array('showitem' => 'allowOnPages, sortingProperty, sortingDirection'),
 		'3' => Array('showitem' => 'l18n_parent, l18n_diffsource'),
+		'4' => Array('showitem' => 'saveAndNew, virtual, tcaTable'),
+		'5' => Array('showitem' => 'fecruser_lock'),
 	),
 );
 

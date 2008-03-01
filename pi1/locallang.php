@@ -50,7 +50,7 @@ $LOCAL_LANG = Array (
 		'label_browser_page' => '###MARKER_BEGIN###| ###PAGE### |###MARKER_END###',
 		'error_no_table' => 'ERROR: Keine Tabelle zur Anzeige ausgewählt !',
 		'text_browser_selected' => 'selected',
-		'noResults' => 'Ihren Suchkriterien entsprechend konnte leider keine Einträge gefunden werden.',
+		'noResults' => 'Ihren Suchkriterien entsprechend konnten leider keine Einträge gefunden werden.',
 		'to_overview' => 'Zur Übersicht',
 	),
 	'no' => Array (

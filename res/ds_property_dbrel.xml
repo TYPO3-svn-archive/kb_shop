@@ -73,6 +73,11 @@
 										<numIndex index="1">static_currencies</numIndex>
 										<numIndex index="2">../typo3conf/ext/static_info_tables/icon_static_currencies.gif</numIndex>
 									</numIndex>
+									<numIndex index="3" type="array">
+										<numIndex index="0">LLL:EXT:static_info_tables/locallang_db.php:static_country_zones.title</numIndex>
+										<numIndex index="1">static_country_zones</numIndex>
+										<numIndex index="2">../typo3conf/ext/static_info_tables/icon_static_country_zones.gif</numIndex>
+									</numIndex>
 								</items>
 								<size>1</size>
 								<max>1</max>
@@ -153,6 +158,34 @@
 							</config>
 						</TCEforms>
 					</multiple>
+					<noMM type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.noMM</label>
+							<exclude>1</exclude>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</noMM>
+					<groupfield type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.groupfield</label>
+							<exclude>1</exclude>
+							<config>
+								<type>check</type>
+							</config>
+						</TCEforms>
+					</groupfield>
+					<andwhere_clause type="array">
+						<TCEforms>
+							<label>LLL:EXT:kb_shop/locallang_db.php:ds_property_dbrel.andwhere_clause</label>
+							<exclude>1</exclude>
+							<config>
+								<type>input</type>
+								<size>30</size>
+							</config>
+						</TCEforms>
+					</andwhere_clause>
 				</el>
 			</ROOT>
 		</sDEF>

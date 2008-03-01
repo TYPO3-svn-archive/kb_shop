@@ -1,7 +1,7 @@
 <T3DataStructure>
 	<meta type="array">
-		<langChildren type="integer">1</langChildren>
-		<langDisable type="integer">0</langDisable>
+		<langChildren type="integer">0</langChildren>
+		<langDisable type="integer">1</langDisable>
 	</meta>
 	<sheets>
 		<sDEF>
@@ -250,12 +250,22 @@
 											</config>
 										</TCEforms>
 									</field_list_order>
+									<field_order_user>
+										<TCEforms>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.list_order_section.list_order_item.field_order_user</label>
+											<exclude>1</exclude>
+											<config>
+												<type>check</type>
+											</config>
+										</TCEforms>
+									</field_order_user>
 									<field_order_custom>
 										<TCEforms>
 											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_listView.list_order_section.list_order_item.field_order_custom</label>
 											<exclude>1</exclude>
 											<config>
 												<type>input</type>
+												<max>1000</max>
 											</config>
 										</TCEforms>
 									</field_order_custom>
@@ -338,6 +348,10 @@
 											<config>
 												<type>select</type>
 												<items>
+													<numIndex index="0" type="array">
+														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.pid</numIndex>
+														<numIndex index="1">pid</numIndex>
+													</numIndex>
 													<numIndex index="1" type="array">
 														<numIndex index="0">LLL:EXT:kb_shop/locallang.php:field.uid</numIndex>
 														<numIndex index="1">uid</numIndex>
@@ -398,7 +412,7 @@
 											<config>
 												<type>check</type>
 											</config>
-											<displayCond>FIELD:field_compare_field:IN:cruser_id,deleted,hidden,fe_group,category</displayCond>
+											<displayCond>FIELD:field_compare_field:IN:pid,cruser_id,crdate,tstamp,deleted,hidden,fe_group,category</displayCond>
 										</TCEforms>
 									</field_compare_usersel>
 									<field_compare_number>
@@ -657,6 +671,22 @@
 											<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:fe_group</displayCond>
 										</TCEforms>
 									</field_compare_value_fe_group>
+									<field_compare_value_pid>
+										<TCEforms>
+											<exclude>1</exclude>
+											<label>LLL:EXT:kb_shop/locallang.php:pi1.sheet_criteria.list_criteria_section.field_compare_value</label>
+											<config>
+												<type>group</type>
+												<internal_type>db</internal_type>
+												<allowed>pages</allowed>
+												<size>6</size>
+												<autoSizeMax>20</autoSizeMax>
+												<minitems>0</minitems>
+												<maxitems>50</maxitems>
+											</config>
+											<displayCond>FIELD:field_compare_usersel:REQ:false &amp;&amp; FIELD:field_compare_field:IN:pid</displayCond>
+										</TCEforms>
+									</field_compare_value_pid>
 									<field_compare_value_category>
 										<TCEforms>
 											<exclude>1</exclude>
@@ -1161,7 +1191,7 @@
 											<config>
 												<type>select</type>
 												<foreign_table>tx_kbshop_category</foreign_table>
-												<foreign_table_where>AND parent=0 AND virtual=1</foreign_table_where>
+												<foreign_table_where>AND parent=0 AND virtual&gt;0</foreign_table_where>
 												<size>1</size>
 												<minitems>0</minitems>
 												<maxitems>1</maxitems>

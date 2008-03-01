@@ -55,16 +55,28 @@ class tx_kbshop_tcamgm	{
 
 		$allowTableOnPages = array();
 		$cacheFile = PATH_site.$this->config->typo3tempPath.'kb_shop_ext_tables_cache.ser';
+		$userTScacheFile = PATH_site.$this->config->typo3tempPath.'kb_shop_userTSconfig.dat';
 		if (@file_exists($cacheFile)&&!$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['kb_shop']['dontCache'])	{	
 			$tcaArr = unserialize(t3lib_div::getURL($cacheFile));
-			return array($tcaArr['tca'], $tcaArr['allowTableOnPages']);
+			return array($tcaArr['tca'], $tcaArr['allowTableOnPages'], $tcaArr['userTSconfig']);
 		} else	{
 			$tca = array();
-			$tables = tx_kbshop_abstract::getRecordsByField($this->config->categoriesTable, 'parent', 0, '', ' AND sys_language_uid=0 AND virtual='.$virtual);
+			$tables = tx_kbshop_abstract::getRecordsByField($this->config->categoriesTable, 'parent', 0, '', ' AND sys_language_uid=0 AND '.($virtual?'virtual>0':'virtual=0'));
+			$userTSconfig = chr(10);
 			if (is_array($tables)&&count($tables))	{
 				t3lib_div::loadTCA($this->config->categoriesTable);
 				foreach ($tables as $trow)	{
+					if ($trow['tcaTable'])	{
+						$this->config->fieldPrefix = '';
+						$this->config->entriesTablePrefix = '';
+					} else	{
+						$this->config->fieldPrefix = $this->config->origFieldPrefix;
+						$this->config->entriesTablePrefix = $this->config->origEntriesTablePrefix;
+					}
 					$tkey = tx_kbshop_misc::getKey($trow);
+					if ($trow['saveAndNew'])	{
+						$userTSconfig .= 'options.saveDocNew.tx_kbshop_tbl_'.$tkey.' = 1'.chr(10);
+					}
 					$tcaFile = $this->config->configExtBasePath.'tca_'.$tkey.'.php';
 					$labels = t3lib_div::trimExplode(',', $trow['labelProperty']);
 					$labelProp = tx_kbshop_abstract::getRecord($this->config->propertiesTable, $labels[0]);
@@ -115,9 +127,19 @@ class tx_kbshop_tcamgm	{
 							'iconfile' => $trow['icon']?('../'.$GLOBALS['TCA'][$this->config->categoriesTable]['columns']['icon']['config']['uploadfolder'].'/'.$trow['icon']):(t3lib_extMgm::extRelPath('kb_shop').'icon_tx_kbshop_category.gif'),
 						),
 						'feInterface' => Array (
-							'fe_admin_fieldList' => 'hidden, starttime, endtime, fe_group, title',
+							'fe_admin_fieldList' => 'hidden, deleted, starttime, endtime, fe_group, title',
 						)
 					);
+					if ($trow['fecruser_prop'])	{
+						$lProp = tx_kbshop_abstract::getRecord($this->config->propertiesTable, $trow['fecruser_prop']);
+						$lkey = tx_kbshop_misc::getKey($lProp);
+						$subtca['ctrl']['fe_cruser_id'] = $this->config->fieldPrefix.$lkey;
+					}
+					if ($trow['fecruser_lock'])	{
+						$lProp = tx_kbshop_abstract::getRecord($this->config->propertiesTable, $trow['fecruser_lock']);
+						$lkey = tx_kbshop_misc::getKey($lProp);
+						$subtca['ctrl']['fe_admin_lock'] = $this->config->fieldPrefix.$lkey;
+					}
 					if (strlen($labels_alt))	{
 						$subtca['ctrl']['label_alt'] = $alabel.','.$labels_alt;
 						$subtca['ctrl']['label_alt_force'] = 1;
@@ -171,6 +193,7 @@ if (is_array($tca))	{
 			$allowTableOnPages = array_keys($this->allowTableOnPages);
 			if (!$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['kb_shop']['dontCache'])	{
 				t3lib_div::writeFile($cacheFile, serialize(array('tca' => $tca, 'allowTableOnPages' => $allowTableOnPages)));
+				t3lib_div::writeFile($userTScacheFile, $userTSconfig);
 			}
 			$this->config->updateLLLfile($this->LLBuffer);
 			return  array($tca, $allowTableOnPages);
@@ -225,6 +248,12 @@ if (is_array($tca))	{
 			require_once($_EXTPATH.'class.tx_kbshop_category.php');
 			require_once($_EXTPATH.'class.tx_kbshop_tcagen.php');
 			require_once($_EXTPATH.'class.tx_kbshop_tcagen_tca.php');
+			if ($category['tcaTable'])	{
+				$this->config->fieldPrefix_backup = $this->config->fieldPrefix;
+				$this->config->entriesTablePrefix_backup = $this->config->entriesTablePrefix;
+				$this->config->fieldPrefix = '';
+				$this->config->entriesTablePrefix = '';
+			}
 			$catObj = t3lib_div::makeInstance('tx_kbshop_category');
 			$catObj->init($this->config);
 			$tcagen = t3lib_div::makeInstance('tx_kbshop_tcagen_tca');
@@ -239,12 +268,11 @@ if (is_array($tca))	{
 					}
 				}
 			}
-			$tca = $tcagen->renderTCA($allProps, $tkey);
+			$tca = $tcagen->renderTCA($allProps, $tkey, $category);
 			if (is_array($tca)&&count($tca))	{
 				if (!$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['kb_shop']['dontCache'])	{
 					t3lib_div::writeFile($this->cacheFile, serialize($tca));
 				}
-				tx_kbshop_misc::loadSectionTCA($tca['columns']);
 					// Create required directories
 				tx_kbshop_misc::createDirs($tcagen->uploadFolders);
 					// Update SQL (if necessary)
@@ -252,7 +280,7 @@ if (is_array($tca))	{
 				$sqlengine = t3lib_div::makeInstance('tx_kbshop_sqlengine');
 				$sqlengine->init($this->config);
 				$sqlengine->writeExtTablesSQL($tcagen->MMtables, $tkey);
-				$ext_section_tables = '<?
+				$ext_section_tables = '<?php
 if (!defined (\'TYPO3_MODE\')) 	die (\'Access denied.\');
 ';
 				if (is_array($sqlengine->relTables))	{
@@ -287,6 +315,10 @@ $GLOBALS[\'TCA\'][\''.$table.'\'] = unserialize(t3lib_div::getURL(\''.$sectionCa
 					t3lib_div::writeFile($this->config->configExtBasePath.'ext_section_tables.php', $ext_section_tables);
 				}
 				return $tca;
+			}
+			if ($category['tcaTable'])	{
+				$this->config->fieldPrefix = $this->config->fieldPrefix_backup;
+				$this->config->entriesTablePrefix = $this->config->entriesTablePrefix_backup;
 			}
 		} 
 			// Return dummy array

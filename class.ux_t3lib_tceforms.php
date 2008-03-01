@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2004 Kraft Bernhard (kraftb@kraftb.at)
+*  (c) 2004-2007 Kraft Bernhard (kraftb@kraftb.at)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -35,6 +35,7 @@
 class ux_t3lib_TCEforms extends t3lib_TCEforms	{
 	var $minInputWidth = 1;
 	var $FE_RTE = 1;
+
 
 	/**
 	 * Returns true, if the evaluation of the required-field code is OK.
@@ -118,7 +119,7 @@ class ux_t3lib_TCEforms extends t3lib_TCEforms	{
 			if (in_array('password',$evalList))	{
 				$itemFormElValue = $itemFormElValue ? '*********' : '';
 			}
-			return $this->getSingleField_typeNone_render($config, $itemFormElValue);
+			return $this->getSingleField_typeNone_render($config, $itemFormElValue,$table,$field,$row,$PA);
 		}
 
 		if (in_array('required',$evalList))	{
@@ -138,10 +139,10 @@ class ux_t3lib_TCEforms extends t3lib_TCEforms	{
 
 		$PA['fieldChangeFunc'] = array_merge(array('typo3FormFieldGet'=>'typo3FormFieldGet('.$paramsList.');'), $PA['fieldChangeFunc']);
 		$mLgd = ($config['max']?$config['max']:256);
-		$iOnChange = implode('',$PA['fieldChangeFunc']);
-		$item.='<input type="text" name="'.$PA['itemFormElName'].'_hr" value=""'.$this->formWidth($size).' maxlength="'.$mLgd.'" onchange="'.htmlspecialchars($iOnChange).'"'.$PA['onFocus'].' class="'.preg_replace('/[\[\]]/', '_', $PA['itemFormElName']).'" />';	// This is the EDITABLE form field.
-		$item.='<input type="hidden" name="'.$PA['itemFormElName'].'" value="'.htmlspecialchars($PA['itemFormElValue']).'" />';			// This is the ACTUAL form field - values from the EDITABLE field must be transferred to this field which is the one that is written to the database.
-		$this->extJSCODE.='typo3FormFieldSet('.$paramsList.');';
+		//$iOnChange = implode('',$PA['fieldChangeFunc']);
+		$item.='<input type="text" name="'.$PA['itemFormElName'].'" value="'.htmlspecialchars($PA['itemFormElValue']).'"'.$this->formWidth($size).' maxlength="'.$mLgd.'" onchange="'.htmlspecialchars($iOnChange).'"'.$PA['onFocus'].' class="'.preg_replace('/[\[\]]/', '_', $PA['itemFormElName']).'" />';	// This is the EDITABLE form field.
+		//$item.='<input type="hidden" name="'.$PA['itemFormElName'].'" value="'.htmlspecialchars($PA['itemFormElValue']).'" />';			// This is the ACTUAL form field - values from the EDITABLE field must be transferred to this field which is the one that is written to the database.
+		//$this->extJSCODE.='typo3FormFieldSet('.$paramsList.');';
 
 			// going through all custom evaluations configured for this field
 		foreach ($evalList as $evalData) {
@@ -170,7 +171,7 @@ class ux_t3lib_TCEforms extends t3lib_TCEforms	{
 	 * @return	void
 	 */
 	function ux_t3lib_TCEforms()	{
-		global $CLIENT;
+		global $CLIENT, $TYPO3_CONF_VARS;
 
 		$this->clientInfo = t3lib_div::clientInfo();
 
@@ -200,6 +201,21 @@ class ux_t3lib_TCEforms extends t3lib_TCEforms	{
 			// Setting the current colorScheme to default.
 		$this->defColorScheme = $this->colorScheme;
 		$this->defClassScheme = $this->classScheme;
+
+ 			// Prepare user defined objects (if any) for hooks which extend this function:
+ 		$this->hookObjectsMainFields = array();
+ 		if (is_array ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getMainFieldsClass']))	{
+ 			foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getMainFieldsClass'] as $classRef)	{
+ 				$this->hookObjectsMainFields[] = &t3lib_div::getUserObj($classRef);
+ 			}
+ 		}
+ 		$this->hookObjectsSingleField = array();
+ 		if (is_array ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getSingleFieldClass']))	{
+ 			foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tceforms.php']['getSingleFieldClass'] as $classRef)	{
+ 				$this->hookObjectsSingleField[] = &t3lib_div::getUserObj($classRef);
+ 			}
+ 		}
+		$this->inline = t3lib_div::makeInstance('t3lib_TCEforms_inline');
 	}
 	
 	/**

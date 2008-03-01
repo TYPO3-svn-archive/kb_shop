@@ -95,10 +95,14 @@ class tx_kbshop_t3libbefunc	{
 					return;
 				}
 			}
+			$trow = tx_kbshop_abstract::getRecord($this->config->categoriesTable, $tableUid);
+			if ($trow['tcaTable'])	{
+				$this->config->fieldPrefix = '';
+				$this->config->entriesTablePrefix = '';
+			}
 			require_once($_EXTPATH.'class.tx_kbshop_category.php');
 			$catObj = t3lib_div::makeInstance('tx_kbshop_category');
 			$catObj->init($this->config);
-			$trow = tx_kbshop_abstract::getRecord($this->config->categoriesTable, $tableUid);
 			$tkey = tx_kbshop_misc::getKey($trow);
 			$catList = $catObj->getCategoriesRec($tableUid);
 			if (is_array($catList)&&count($catList))	{
@@ -177,8 +181,7 @@ class tx_kbshop_t3libbefunc	{
 				$data = t3lib_div::getURL(t3lib_extMgm::extPath('kb_shop').'ext_tables.sql');
 				$mod = $sqlengine->setMMtableCode($data, $tcagen->MMtables);
 				if (strlen($mod)&&strcmp($data, $mod))	{
-						// TODO: Respect configuration extension
-					t3lib_div::writeFile(t3lib_extMgm::extPath('kb_shop').'ext_tables.sql', $mod);
+					t3lib_div::writeFile($this->config->configExtBasePath.'ext_tables.sql', $mod);
 					$sqlengine->performDBupdates();
 				}
 			}

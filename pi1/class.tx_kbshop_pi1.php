@@ -22,11 +22,11 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 /**
- * Plugin 'sdfds' for the 'kb_shop' extension.
+ * Plugin 'Shop (Cached)' for the 'kb_shop' extension.
  *
  * @author	Bernhard Kraft <kraftb@kraftb.at>
  */
-
+ini_set ('display_errors', 0);
 
 $_EXTKEY = 'kb_shop';
 $_EXTKEY_ = str_replace('_', '', $_EXTKEY);
@@ -39,12 +39,14 @@ require_once($_EXTPATH.'class.tx_'.$_EXTKEY_.'_category.php');
 require_once($_EXTPATH.'class.tx_'.$_EXTKEY_.'_tcagen.php');
 require_once($_EXTPATH.'pi1/class.tx_'.$_EXTKEY_.'_t3tt.php');
 require_once($_EXTPATH.'class.tx_'.$_EXTKEY_.'_t3lib_tcemain.php');
-require_once (PATH_t3lib.'class.t3lib_tceforms.php');
-require_once (PATH_t3lib.'class.t3lib_iconworks.php');
-require_once (PATH_t3lib.'class.t3lib_loaddbgroup.php');
-require_once (PATH_t3lib.'class.t3lib_transferdata.php');
-require_once (PATH_t3lib.'class.t3lib_userauthgroup.php');
-require_once (t3lib_extMgm::extPath('lang').'lang.php');
+require_once(PATH_t3lib.'class.t3lib_tceforms.php');
+require_once(PATH_t3lib.'class.t3lib_iconworks.php');
+require_once(PATH_t3lib.'class.t3lib_loaddbgroup.php');
+require_once(PATH_t3lib.'class.t3lib_transferdata.php');
+require_once(PATH_t3lib.'class.t3lib_userauthgroup.php');
+require_once(PATH_t3lib.'class.t3lib_beuserauth.php');
+require_once(PATH_t3lib.'class.t3lib_tsfebeuserauth.php');
+require_once(t3lib_extMgm::extPath('lang').'lang.php');
 
 class tx_kbshop_pi1 extends tslib_pibase {
 	var $prefixId = 'tx_kbshop_pi1';		// Same as class name
@@ -77,6 +79,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		$this->saveSQLdebug = $GLOBALS['TYPO3_DB']->debugOutput;
 		$GLOBALS['TYPO3_DB']->debugOutput = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['kb_shop']['SQLdebug'];
 		$this->conf=$conf;
+		$this->pi_USER_INT_obj = 0;
 		$this->pi_setPiVarDefaults();
 		$this->pi_initPIflexForm();
 		$this->pi_loadLL();
@@ -95,16 +98,29 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		if ($d = intval($this->conf['forms.']['doublePostDelay']))	{
 			$this->doublePostDelay = $d;
 		}
+
+		$this->localcObj = clone($this->cObj);
+		$this->registerBackup = array($GLOBALS['TSFE']->register, $GLOBALS['TSFE']->registerStack);
 	
 		$this->prodPagesStr = $this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'field_pages', 'sDEF', $this->config->lDEF, $this->config->vDEF);
+		$this->prodPagesStr = $this->localcObj->stdWrap($this->prodPagesStr, $this->conf['pages.']);
 		$recursive = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'field_pages_recursive', 'sDEF', $this->config->lDEF, $this->config->vDEF));
+		$recursive = intval($this->localcObj->stdWrap($recursive, $this->conf['pages.']['recursive.']));
 		if ($recursive)	{
 			$this->prodPagesStr = $this->pi_getPidList($this->prodPagesStr, $recursive);
 		}
 		$this->prodPages = t3lib_div::intExplode(',', $this->prodPagesStr);
 
 		$tuid = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'field_table', 'sDEF', $this->config->lDEF, $this->config->vDEF));
+		if (!$tuid)	{
+			$tuid = intval($this->localcObj->stdWrap($this->conf['showTable'], $this->conf['showTable.']));
+		}
+
 		$this->listTable = tx_kbshop_abstract::getRecord($this->config->categoriesTable, $tuid);
+		if ($this->listTable['tcaTable'])	{
+			$this->config->fieldPrefix = '';
+			$this->config->entriesTablePrefix = '';
+		}
 		if (!(is_array($this->listTable)&&count($this->listTable)))	{
 			$GLOBALS['TYPO3_DB']->debugOutput = $this->saveSQLdebug;
 			return $this->pi_getLL('error_no_table');
@@ -115,14 +131,19 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		$content = '';	
 		$fatalError = '';	
 
-		$this->localcObj = clone($this->cObj);
+		if (!$this->localcObj->checkIf($this->conf['if.']))	{	
+			return '';
+		}
 
 		$this->showUid = intval($this->piVars['v']);
+		if (!$this->showUid)	{
+			$this->showUid = intval($this->localcObj->stdWrap($this->conf['showUid'], $this->conf['showUid.']));
+		}
 		$disableSingle = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'field_disableSingleView', 'sDEF', $this->config->lDEF, $this->config->vDEF));
 		if (!$disableSingle && $this->showUid)	{
 			$this->tskey = 'singleView';
 		}
-		
+			
 		$this->checkPiVars();
 
 		$this->catObj = t3lib_div::makeInstance('tx_'.$this->_extKey.'_category');
@@ -135,6 +156,8 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		};
 
 		$this->formItems = tx_kbshop_abstract::getFlexformChilds($this->cObj->data['pi_flexform'], 'list_forms_section', 'list_form_item', array('field_form_table', 'field_save_table', 'field_transferts'), 'form', $this->config->lDEF, $this->config->vDEF);
+		$this->getVTables();
+//		print_r($this->data);
 		if (is_array($this->formItems)&&count($this->formItems))	{
 			$GLOBALS['LANG'] = t3lib_div::makeInstance('language');
 			$GLOBALS['LANG']->init($GLOBALS['TSFE']->sys_language_isocode);
@@ -142,27 +165,52 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			if ($this->doProcessData())	{
 				$this->processData();
 				if ((!$this->formError) && is_array($this->data) && count($this->data))	{
-					$formTarget = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'field_submitTarget', 'form', $this->config->lDEF, $this->config->vDEF));
+					$this->formTarget = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'field_submitTarget', 'form', $this->config->lDEF, $this->config->vDEF));
 					if (is_array($this->conf['forms.']['formTarget.']))	{
-						$formTarget = $this->cObj->stdWrap($formTarget, $this->conf['forms.']['formTarget.']);
+						$this->formTarget = $this->cObj->stdWrap($this->formTarget, $this->conf['forms.']['formTarget.']);
 					}
 					if ($this->cObj->stdWrap($this->conf['doSave'], $this->conf['doSave.'])) {
 							// We save the record after checking for double posts.
 						$ok = $this->recordSetExists();
-						if ($ok)	{
+						if (0 && $ok)	{
 							$GLOBALS['TSFE']->register['kbshop_alreadyPosted'] = $this->alreadyPosted = 1;
 						} else	{
-							$this->saveTables();
-							$this->hook('postSave');
-							if (!intval($this->conf['forms.']['dontClearBasket']))	{
-								$this->sessionData['basket'] = array();
+							$save = $this->hook('preSave');
+							if ($save['paymentOK'])	{
+								
+//								$backupData = $this->data;
+								$ret = $this->hook('postSave');
+								$this->saveTables();
+								/*
+								if ($this->data!=$backupData)	{
+									fprintf($this->data);
+									echo "error occured";
+									exit();
+								}
+								*/
+								if ($ret['error'])	{
+									if ($this->deleteOrderOnError)	{
+										foreach ($this->pObj->transData['tx_kbshop_stbl_basket___order_item_SECTION'] as $idx => $oiRow)	{
+											$oiUids[] = $oiRow['uid'];
+										}
+										$oiUidList = implode(',', $oiUids);
+										$GLOBALS['TYPO3_DB']->exec_DELETEquery('tx_kbshop_stbl_orders___order_item_SECTION', 'uid IN ('.$oiUidList.')');
+										$GLOBALS['TYPO3_DB']->exec_DELETEquery('tx_kbshop_tbl_orders', 'uid='.$this->pObj->transData['tx_kbshop_tbl_basket'][1]['uid']);
+									}
+									$this->storeVTables();
+									$this->formTarget = '';
+								} else	{
+									if (!(intval($this->conf['forms.']['dontClearBasket']||$this->dontClearBasket)))	{
+										$this->data = array();
+									}
+									$this->storeVTables();
+								}
 							}
-							$GLOBALS['TSFE']->register['kbshop_savedRecords'] = $this->savedRecords = 1;
-							$GLOBALS['TSFE']->fe_user->setKey('ses', $this->prefixId, $this->sessionData);
-							$GLOBALS['TSFE']->fe_user->storeSessionData();
 						}
 					}
-					if ($formTarget)	{
+					$noRedirect = intval(t3lib_div::_GP('noRedirect'));
+					if ($this->formTarget&&(!$noRedirect))	{
+						/*
 						foreach ($this->data as $table => $tableArr)	{
 							foreach ($tableArr as $vUid => $rrow)	{
 								$this->sessionData['basket'][$table][$vUid] = $this->data[$table][$vUid];
@@ -170,8 +218,9 @@ class tx_kbshop_pi1 extends tslib_pibase {
 						}
 						$GLOBALS['TSFE']->fe_user->setKey('ses', $this->prefixId, $this->sessionData);
 						$GLOBALS['TSFE']->fe_user->storeSessionData();
-						if ($formTarget!=$GLOBALS['TSFE']->id)	{
-							$url = $this->pi_linkTP_keepPIvars_url(array(), $this->conf[$this->tskey.'.']['noCache']?0:1, 0, $formTarget);
+						*/
+						if ($this->formTarget!=$GLOBALS['TSFE']->id)	{
+							$url = $this->pi_linkTP_keepPIvars_url(array(), $this->conf[$this->tskey.'.']['noCache']?0:1, 0, $this->formTarget);
 							$url = t3lib_div::locationHeaderUrl($url);
 							header('Location: '.$url);
 							exit();
@@ -179,15 +228,14 @@ class tx_kbshop_pi1 extends tslib_pibase {
 					}
 				}
 			}
-		} else	{
-			$this->sessionData = $GLOBALS['TSFE']->fe_user->getKey('ses', $this->prefixId);
-			$this->data = $this->sessionData['basket'];
 		}
-
 
 
 		if (!$fatalError)	{
 			$this->showUid = intval($this->piVars['v']);
+			if (!$this->showUid)	{
+				$this->showUid = intval($this->localcObj->stdWrap($this->conf['showUid'], $this->conf['showUid.']));
+			}
 			$disableSingle = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'field_disableSingleView', 'sDEF', $this->config->lDEF, $this->config->vDEF));
 			if (!$disableSingle && $this->showUid)	{
 				list($c, $e) = $this->singleView();
@@ -216,7 +264,9 @@ class tx_kbshop_pi1 extends tslib_pibase {
 
 
 	function formTag()	{
-		return '<form action="'.$this->pi_linkTP_keepPIvars_url(array(), $this->conf[$this->tskey.'.']['noCache']?0:1).'" name="editform" method="POST" target="_top" enctype="multipart/form-data" '.$this->conf['forms.']['formAddParams'].'>';
+//		$formname = $this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'field_form_name', 'list_form_section', $this->config->lDEF, $this->config->vDEF);
+		$formname = $formname?$formname:'editform';
+		return '<form action="'.$this->pi_linkTP_keepPIvars_url(array(), $this->conf[$this->tskey.'.']['noCache']?0:1).'" name="'.$formname.'" method="POST" target="_top" enctype="multipart/form-data" '.$this->conf['forms.']['formAddParams'].'>';
 	}
 	
 	function initHooks()	{
@@ -238,7 +288,8 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		$f = $this->config->hookMethodPrefix.$name;
 		foreach ($this->hookObjects as $hookObjIdx => $hookObj)	{
 			$hookObj = &$this->hookObjects[$hookObjIdx];
-			if (method_exists($hookObj, $f))	{
+			if (method_exists($hookObj, $f))	{		
+			
 				$ret = $hookObj->$f($this, $args);
 				if (is_array($ret)&&$ret['break'])	{
 					unset($ret['break']);
@@ -415,14 +466,15 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		foreach ($this->formTables as $table => $tca)	{
 			if ($tca['ctrl']['parentTable'])	continue;
 			if ($this->data[$table])	{
+			
 				foreach ($this->transData[$table] as $tmp => $dArr)	{
 					$sdArr = array();
 					if (is_array($sectionTables[$table]))	{
 						// Join section records.
 						foreach ($sectionTables[$table] as $sTable => $sArr)	{
-							foreach ($sArr as $sRow)	{
+							foreach ($sArr as $skey => $sRow)	{
 								if ($sRow['parent']==$dArr['uid'])	{
-									$sdArr[$sTable][] = $sRow;
+									$sdArr[$sTable][$skey] = $sRow;
 								}
 							}
 						}
@@ -431,12 +483,16 @@ class tx_kbshop_pi1 extends tslib_pibase {
 					if ($mapArr = $this->transferMapping[$table])	{
 						$GLOBALS['TYPO3_DB']->exec_INSERTquery($mapArr['target'], $dArr);
 						$insertId = $GLOBALS['TYPO3_DB']->sql_insert_id();
+						$this->transData[$table][$tmp]['uid'] = $insertId;
 						foreach ($sdArr as $sTable => $sArr)	{
 							$tsTable = $this->getSectionTableMappedName($sTable, $table);
-							foreach ($sArr as $sRow)	{
+							foreach ($sArr as $skey => $sRow)	{
 								$sRow['parent'] = $insertId;
 								unset($sRow['uid']);
 								$GLOBALS['TYPO3_DB']->exec_INSERTquery($tsTable, $sRow);
+								$secInsertId = $GLOBALS['TYPO3_DB']->sql_insert_id();
+								$this->transData[$sTable][$skey]['uid'] = $secInsertId;
+								$this->transData[$sTable][$skey]['parent'] = $insertId;
 							}
 						}
 					}
@@ -470,10 +526,21 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		}
 	}
 
-	function listView($htmltmpl = 'listView', $renderCS = true, $renderPB = true, $overrideKey = '')	{
+	function listView($htmltmpl = 'listView', $renderCS = true, $renderPB = true, $overrideKey = '', $restoreReg = false)	{
+		$regBack = array();
+		if ($restoreReg)	{
+			$regBack = array($GLOBALS['TSFE']->register, $GLOBALS['TSFE']->registerStack);
+			$GLOBALS['TSFE']->register = $this->registerBackup[0];
+			$GLOBALS['TSFE']->registerStack = $this->registerBackup[1];
+		}
 		list($tmpl, $e) = $this->loadTemplate($this->tskey);
 		if ($e)	{
-			return array('', $tmpl);
+			if ($restoreReg)	{
+				$regCur = array($GLOBALS['TSFE']->register, $GLOBALS['TSFE']->registerStack);
+				$GLOBALS['TSFE']->register = $regBack[0];
+				$GLOBALS['TSFE']->registerStack = $regBack[1];
+			}
+			return array('', $tmpl, $regCur);
 		}
 		$key = $overrideKey?$overrideKey:$this->cObj->stdWrap($this->conf['subpart.'][$this->tskey], $this->conf['subpart.'][$this->tskey.'.']);
 		$key = preg_replace('/[^a-zA-Z0-9_]/', '', $key);
@@ -485,17 +552,47 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			$content = $this->cObj->getSubpart($tmpl, $subkey = ('###TMPL_'.$htmltmpl.'###'));
 		}
 		if (!strlen($content))	{
-			return array('', str_replace('###SUBPART###', $subkey, $this->pi_getLL('error_subpart_not_found')).'<br />'.chr(10));
+			if ($restoreReg)	{
+				$regCur = array($GLOBALS['TSFE']->register, $GLOBALS['TSFE']->registerStack);
+				$GLOBALS['TSFE']->register = $regBack[0];
+				$GLOBALS['TSFE']->registerStack = $regBack[1];
+			}
+			return array('', str_replace('###SUBPART###', $subkey, $this->pi_getLL('error_subpart_not_found')).'<br />'.chr(10), $regCur);
 		}
 		if ($this->conf[$this->tskey.'.']['noCache'] || (is_array($this->formItems) && count($this->formItems)))	{
-			$GLOBALS['TSFE']->set_no_cache();
+			//$GLOBALS['TSFE']->set_no_cache();
 		}
 		$this->localcObj = clone($this->cObj);
-		$this->localcObj->LOAD_REGISTER('', 'LOAD_REGISTER');
+//		$this->localcObj->LOAD_REGISTER('', 'LOAD_REGISTER');
 
 			// Set user-defined and pre-defined criteria values
 		if ($e = $this->setDefinedCriteria())	{
-			return array('', $e);
+			if ($restoreReg)	{
+				$regCur = array($GLOBALS['TSFE']->register, $GLOBALS['TSFE']->registerStack);
+				$GLOBALS['TSFE']->register = $regBack[0];
+				$GLOBALS['TSFE']->registerStack = $regBack[1];
+			}
+			return array('', $e, $regCur);
+		}
+
+			// Set user-defined and pre-defined search values
+		if ($this->isSearch&&($e = $this->setSearchCriteria()))	{
+			if ($restoreReg)	{
+				$regCur = array($GLOBALS['TSFE']->register, $GLOBALS['TSFE']->registerStack);
+				$GLOBALS['TSFE']->register = $regBack[0];
+				$GLOBALS['TSFE']->registerStack = $regBack[1];
+			}
+			return array('', $e, $regCur);
+		}
+
+			// Set user-defined and pre-defined search values
+		if ($this->isSearch&&($e = $this->setSearchCriteria()))	{
+			if ($restoreReg)	{
+				$regCur = array($GLOBALS['TSFE']->register, $GLOBALS['TSFE']->registerStack);
+				$GLOBALS['TSFE']->register = $regBack[0];
+				$GLOBALS['TSFE']->registerStack = $regBack[1];
+			}
+			return array('', $e, $regCur);
 		}
 
 		$markerTree = array();
@@ -505,6 +602,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			// Render criteria selector
 		if ($renderCS&&intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'field_showCriteriaSelector', 'criteria', $this->config->lDEF, $this->config->vDEF)))	{
 			$this->renderCriteriaSelector($markerTree);
+			$this->renderSortSelector($markerTree);
 		} else	{
 			$markerTree['_SUBPARTS']['###PART_criteriaSelector###'] = false;
 			$markerTree['_SUBPARTS']['###PART_criteriaSelectorEmpty###'] = true;
@@ -512,7 +610,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 
 			// Set the field label markers
 		$this->setLabelMarkers($markerTree['_MARKERS']);
-		
+
 		$this->showPB = intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'field_showPagebrowser', 'listView', $this->config->lDEF, $this->config->vDEF));
 		if (!$this->showPB)	{
 			$this->piVars['p'] = 0;
@@ -520,30 +618,40 @@ class tx_kbshop_pi1 extends tslib_pibase {
 
 			// Set the number of found items
 		$this->itemCount = t3lib_div::intInRange(intval($this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'field_itemsPerPage', 'listView', $this->config->lDEF, $this->config->vDEF)), 0, 100000, 0);
-		if ($this->itemCount)	{
+		$this->itemCount = $this->localcObj->stdWrap($this->itemCount, $this->conf['itemsPerPage.']);
+		if ($this->itemCount&&((!$this->isSearch)||trim($this->piVars['s'])))	{
 			$this->setLinkMarkers($markerTree['_MARKERS'], $markerTree['_SUBPARTS']);
 			$this->items = $this->queryUidList(-1);
 			$markerTree['_MARKERS']['###PAGE_current###'] = intval($this->piVars['p'])+1;
 			$markerTree['_MARKERS']['###PAGE_all###'] = intval((intval($this->items)-1)/intval($this->itemCount))+1;
-			$markerTree['_MARKERS']['###ITEMS_found###'] = $this->items;
+			$markerTree['_MARKERS']['###ITEMS_found###'] = count($this->items);
 			$markerTree['_MARKERS']['###ITEMS_index_begin###'] = (intval($this->piVars['p'])*$this->itemCount)+1;
 			$markerTree['_MARKERS']['###ITEMS_index_end###'] = ((intval($this->piVars['p'])+1)*$this->itemCount)>$this->items?$this->items:((intval($this->piVars['p'])+1)*$this->itemCount);
 			$markerTree['_MARKERS']['###ITEMS_shown###'] = $markerTree['_MARKERS']['###ITEMS_index_end###']-$markerTree['_MARKERS']['###ITEMS_index_begin###']+1;
-	
+
 
 			$this->renderForms($markerTree['_MARKERS'], $markerTree['_SUBPARTS'], $content, $this->conf[$this->tskey.'.']['forms.']);
-				
+
 			$args = array(
 				'markerTree' => &$markerTree,
 				'content' => &$content,
 			);
 			$this->hook('renderListing', $args);
-	
-			if ($this->items||$this->onlyUid)	{
+
+			if (trim($this->piVars['s']))	{
+				$markerTree['_SUBPARTS']['###PART_listingNoSearch###'] = false;
+			} else	{
+				$markerTree['_SUBPARTS']['###PART_listingNoSearch###'] = true;
+			}
+			if (($this->items||$this->onlyUid)&&((!$this->isSearch)||trim($this->piVars['s'])))	{
 				$this->renderItemList($markerTree, $content);
 			} else	{
 				$markerTree['_SUBPARTS']['###PART_listing###'] = false;
-				$markerTree['_SUBPARTS']['###PART_listingEmpty###'] = true;
+				if ($this->isSearch&&!trim($this->piVars['s']))	{
+					$markerTree['_SUBPARTS']['###PART_listingEmpty###'] = false;
+				} else	{
+					$markerTree['_SUBPARTS']['###PART_listingEmpty###'] = true;
+				}
 			}
 		}
 
@@ -573,16 +681,16 @@ class tx_kbshop_pi1 extends tslib_pibase {
 					'###ITEM_equalWidth###' => intval(100/$cnt),
 				),
 				'_SUBPARTS' => array(
-					'###BROWSE_itemFirst###' => $firstlast?$this->getBrowseSubpart(0):false,
-					'###BROWSE_itemFirstEmpty###' => $firstlast?false:true,
+					'###BROWSE_itemFirst###' => ($firstlast&&($p>1))?$this->getBrowseSubpart(0):false,
+					'###BROWSE_itemFirstEmpty###' => ($firstlast&&($p>1))?false:true,
 					'###BROWSE_itemPrevious###' => ($prevnext&&($p>0))?$this->getBrowseSubpart($p-1):false,
 					'###BROWSE_itemPreviousEmpty###' => ($prevnext&&($p>0))?false:true,
 					'###BROWSE_itemList###' => $itemsSubpart,
 					'###BROWSE_itemListEmpty###' => count($markerList)?false:true,
 					'###BROWSE_itemNext###' => ($prevnext&&($p<$last))?$this->getBrowseSubpart($p+1):false,
 					'###BROWSE_itemNextEmpty###' => ($prevnext&&($p<$last))?false:true,
-					'###BROWSE_itemLast###' => $firstlast?$this->getBrowseSubpart($last):false,
-					'###BROWSE_itemLastEmpty###' => $firstlast?false:true,
+					'###BROWSE_itemLast###' => ($firstlast&&($p<($last-1)))?$this->getBrowseSubpart($last):false,
+					'###BROWSE_itemLastEmpty###' => ($firstlast&&($p<($last-1)))?false:true,
 				),
 			);
 			$markerTree['_SUBPARTS']['###PART_pageBrowserEmpty###'] = false;
@@ -592,19 +700,26 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		}
 
 		$markerTree['_MARKERS']['###FORM_TAG###'] = $this->formTag();
+		$markerTree['_MARKERS']['###SEARCH_VALUE###'] = $this->piVars['s'];
 		$content = $this->t3tt->substituteSubpartsAndMarkers_Tree($content, $markerTree);
-	
+
 		if (intval(t3lib_div::_GP('debug')))	{
 			$content .= t3lib_div::print_array($markerTree);
 		}
 
-		$this->localcObj->LOAD_REGISTER('', 'RESTORE_REGISTER');
-		
+//		$this->localcObj->LOAD_REGISTER('', 'RESTORE_REGISTER');
+
 		if ($this->conf[$this->tskey.'.']['stdWrap.'])	{	
 			$content = $this->cObj->stdWrap($content, $this->conf[$this->tskey.'.']['stdWrap.']);
 		}
 
-		return array($content, '');
+		if ($restoreReg)	{
+			$regCur = array($GLOBALS['TSFE']->register, $GLOBALS['TSFE']->registerStack);
+			$GLOBALS['TSFE']->register = $regBack[0];
+			$GLOBALS['TSFE']->registerStack = $regBack[1];
+		}
+
+		return array($content, '', $regCur);
 	}
 
 	function renderForms(&$markers, &$subparts, $content, $conf, $type = 'listing', $actUid = 0)	{
@@ -623,14 +738,13 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		$formVarsInserted = array();
 		$this->hiddenFieldAccum = array();
 		if (is_array($conf)&&count($conf))	{
-			if (preg_match_all('/###INPUT_'.strtoupper($type).'_([a-zA-Z0-9_\|]+)###/', $content, $matches, PREG_SET_ORDER)>0)	{
+			if (preg_match_all('/###INPUT_'.strtoupper($type).'_([a-zA-Z0-9_\|]+)(\+.*)?###/U', $content, $matches, PREG_SET_ORDER)>0)	{
 				if (!is_array($this->formTables))	{
 					$this->loadFormTables();
 				}
 				foreach ($matches as $match)	{
 					list($table, $field, $subfield) = explode('|', $match[1]);
 					if (!$this->checkIf($conf['fields.'][($subfield?$subfield:$field).'.']['if.']))	continue;
-
 					$this->BE_USER = $this->formTableUsers[$this->config->entriesTablePrefix.$table];
 					if ($fConf = $GLOBALS['TCA'][$this->config->entriesTablePrefix.$table]['columns'][$this->config->fieldPrefix.$field])	{
 						$origTable = $table;
@@ -655,8 +769,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 //							$this->tmpData[$table][$vUid] = $this->updateTableRow($table, $vUid, $conf, $this->data[$table][$vUid]);
 							$this->tmpData[$table][$vUid] = $this->data[$table][$vUid] = $this->updateTableRow($table, $vUid, $conf, $this->data[$table][$vUid], $field);
 						}
-						$this->sessionData['basket'][$table][$vUid] = $this->data[$table][$vUid];
-						$GLOBALS['TSFE']->fe_user->setKey('ses', $this->prefixId, $this->sessionData);
+						$this->storeVTables();
 						$PA = $this->getPA($table, $field, $this->tmpData[$table][$vUid]);
 						$this->tceforms->initDefaultBEMode();
 						$fCode = '';
@@ -664,6 +777,10 @@ class tx_kbshop_pi1 extends tslib_pibase {
 							$this->tceforms->cachedTSconfig[$table.':'.$this->tmpData[$table][$vUid]['uid']] = array();
 							$formVarsInserted[$table][$vUid][$field] = 1;
 							$fCode .= $this->tceforms->getSingleField_SW($table, $field, $this->tmpData[$table][$vUid], $PA);
+
+							$fCode = preg_replace('/style="[^"]*"/', 'style="'.substr($match[2], 1).'"', $fCode);
+							$fCode = preg_replace('/<select([^>]*)>/Us', '<select$1 style="'.substr($match[2], 1).'">', $fCode);
+							$fCode = preg_replace('/<input([^>]*)type="checkbox"([^>]*)>/Us', '<input$1type="checkbox"$2 style="'.substr($match[2], 1).'">', $fCode);
 							$markers[$match[0]] = $fCode;
 						}
 						$GLOBALS['BE_USER'] = $sBEU;
@@ -697,7 +814,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 							} else	{
 								$subparts[$match[0]] = true;
 							}
-						} elseif (!$this->data[$table][$vUid][$field])	{
+						} elseif (0&&!$this->data[$table][$vUid][$field])	{
 							if (!isset($this->postedData[$table][$vUid][$field]))	{
 								$subparts[$match[0]] = false;
 							} else	{
@@ -706,6 +823,13 @@ class tx_kbshop_pi1 extends tslib_pibase {
 						} else	{
 							$subparts[$match[0]] = false;
 						}
+					}
+					if ($m = $this->errorFields[$table][$field])	{
+							if (is_string($m)&&strlen($m))	{
+								$subparts[$match[0]] = $m;
+							} else	{
+								$subparts[$match[0]] = true;
+							}
 					}
 				}
 			}
@@ -794,7 +918,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		if (	is_array($PA['fieldConf']) &&
 				$PA['fieldConf']['config']['form_type']!='passthrough' &&
 				($this->RTEenabled || !$PA['fieldConf']['config']['showIfRTE']) &&
-				(!$PA['fieldConf']['displayCond'] || $this->isDisplayCondition($PA['fieldConf']['displayCond'],$row)) &&
+//				(!$PA['fieldConf']['displayCond'] || $this->isDisplayCondition($PA['fieldConf']['displayCond'],$row)) &&
 				(!$GLOBALS['TCA'][$table]['ctrl']['languageField'] || $PA['fieldConf']['l10n_display'] || strcmp($PA['fieldConf']['l10n_mode'],'exclude') || $row[$GLOBALS['TCA'][$table]['ctrl']['languageField']]<=0) &&
 				(!$GLOBALS['TCA'][$table]['ctrl']['languageField'] || !$this->localizationMode || $this->localizationMode===$PA['fieldConf']['l10n_cat'])
 			)	{
@@ -831,7 +955,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 	}
 
 	function loadFormTables()	{
-		if (!$this->formTables)	{
+		if (!($this->formTables&&count($this->formTables)))	{
 			$this->formTables = array();
 			$this->saveTables = array();
 			$this->transferMapping = array();
@@ -849,11 +973,14 @@ class tx_kbshop_pi1 extends tslib_pibase {
 					}
 				}
 			}
+			if (!$this->formItems[$this->listTable['uid']])	{
+				list($skey, $tca) = $this->loadTable($this->listTable['uid'], true);
+			}
 		}
 	}
 
 	function loadTable($table, $virtual)	{
-		$trow= tx_kbshop_abstract::getRecord($this->config->categoriesTable, intval($table));
+		$trow = tx_kbshop_abstract::getRecord($this->config->categoriesTable, intval($table));
 		$propsPid = $this->config->getPropertiesPage();
 		$cacheFile = PATH_site.$this->config->typo3tempPath.'kb_shop_vtbl_'.intval($table).'_cache.ser';
 		if (@file_exists($cacheFile)&&!$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['kb_shop']['dontCache'])	{	
@@ -886,7 +1013,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 					'delete' => 'deleted',
 					'requestUpdate' => 'category',
 					'tableCategoryUid' => $trow['uid'],
-					'virtual' => 1,
+					'virtual' => $trow['virtual'],
 					'enablecolumns' => Array (		
 						'disabled' => 'hidden',	
 						'starttime' => 'starttime',	
@@ -942,7 +1069,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			}
 			$tca = $tcagen->renderTCA($allProps, $tkey);
 			if (is_array($tca)&&count($tca))	{
-				tx_kbshop_misc::loadSectionTCA($tca['columns']);
+				//tx_kbshop_misc::loadSectionTCA($tca['columns']);
 					// Create required directories
 				tx_kbshop_misc::createDirs($tcagen->uploadFolders);
 				require_once($GLOBALS['_EXTPATH'].'class.tx_kbshop_sqlengine.php');
@@ -953,8 +1080,8 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				$GLOBALS['TCA'][$this->config->entriesTablePrefix.$tkey] = $tca;
 				$this->formTables[$this->config->entriesTablePrefix.$tkey] = $tca;
 				$simUser = $this->pluginPageRec['cruser_id'];
-				$beUrec= tx_kbshop_abstract::getRecord('be_users', $simUser);
-				$tempBE_USER = t3lib_div::makeInstance('t3lib_userAuthGroup');	// New backend user object
+				$beUrec = tx_kbshop_abstract::getRecord('be_users', $simUser);
+				$tempBE_USER = t3lib_div::makeInstance('t3lib_tsfeBeUserAuth');	// New backend user object
 				$tempBE_USER->OS = TYPO3_OS;
 				$tempBE_USER->user = $beUrec;
 				$tempBE_USER->groupData['tables_modify'] .= ','.$this->config->entriesTablePrefix.$tkey;
@@ -1001,6 +1128,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		if (!$table)	{
 			$table = $this->config->entriesTable;
 		}
+		$lMarks['###ITEMS_'.($section?$section:'listing').'_found###'] = count($rows);
 		$listItems = array();
 		$prevData = $this->localcObj->data;
 		$this->localcObj->setParent($prevData, '');
@@ -1024,6 +1152,12 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				$tmp = array();
 				$fields['uid'] = 'uid';
 				$this->localcObj->data = array_merge($prevData, $row);
+				/*
+		if ($this->doDebug&&($section=='order_item'))	{
+			print_r($fields);
+			exit();
+		}
+				*/
 				foreach ($fields as $key => $field)	{
 					$tmp[$key] = $row[$field];
 					list($value) = $this->getFieldRenderValue($fArr[$key], $row[$field], $this->conf[$this->tskey.'.']['itemList.']['uidLists']);
@@ -1038,9 +1172,15 @@ class tx_kbshop_pi1 extends tslib_pibase {
 						continue;
 					}
 				}
+				/*
+				if ($this->doDebug&&($section=='order_item'))	{
+					print_r($this->localcObj->data);
+					exit();
+				}
+				*/
 				$this->insertRenderFields($ma, $sp, $fields, $row, $section?$section.'_':'', $section);
 				$this->insertMarkers($ma, $section?$this->conf[$this->tskey.'.']['itemList.'][$section.'.']['marks.']:$this->conf[$this->tskey.'.']['itemList.']['marks.']);
-				$this->insertSubparts($sp, $section?$this->conf[$this->tskey.'.']['itemList.'][$section.'.']['subparts.']:$this->conf[$this->tskey.'.']['itemList.']['subparts.']);
+				$this->insertSubparts($sp, $section?$this->conf[$this->tskey.'.']['itemList.'][$section.'.']['subparts.']:$this->conf[$this->tskey.'.']['itemList.']['subparts.'], $section);
 				$ma['###'.$cObjMarker.'_even###'] = ($cnt%2)?0:1;
 				$ma['###'.$cObjMarker.'_uneven###'] = ($cnt%2)?1:0;
 				$ma['###'.$cObjMarker.'_index0###'] = $cnt-1;
@@ -1048,6 +1188,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				if (count($resultArr['sectionFieldsArray']))	{
 					foreach ($resultArr['sectionFieldsArray'] as $keySect => $sectionFields)	{
 						$skey = $resultArr['sectionFields'][$keySect];
+						$ma['###'.strtoupper($keySect).'_found###'] = count($row[$skey]);
 						$subma = array();
 						$this->renderRows($subma, $content, $row[$skey], $sectionFields, false, strtoupper($keySect), $keySect, $this->config->sectionTablePrefix.$this->config->entriesTable.$this->config->sectionTableCenter.$keySect.$this->config->sectionTablePostfix);
 						$sp = array_merge($sp, $subma['_SUBPARTS']);
@@ -1077,7 +1218,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				);
 				$this->hook('renderRow', $args);
 				$this->renderCObjects($ma, strtoupper($cObjMarker), $section?$this->conf[$this->tskey.'.']['itemList.'][$section.'.']['cObjects.']:$this->conf[$this->tskey.'.']['itemList.']['cObjects.'], $itemCObjects);
-				$this->renderForms($ma, $sp, $content, $this->conf[$this->tskey.'.']['itemList.']['forms.'], 'item', $row['uid']);
+				$this->renderForms($ma, $sp, $content, $this->conf[$this->tskey.'.']['itemList.']['forms.'], $section?$section:'item', $row['uid']);
 				if (is_array($sconf = $this->conf[$this->tskey.'.']['itemList.']['overlay.'])&&$this->checkIf($sconf['if.']))	{
 					$this->renderOverlay($sconf, $sp, $ma, $content);
 				}
@@ -1103,6 +1244,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				$cnt++;
 			}
 			$markerTree['_SUBPARTS']['###PART_'.($section?$section:'listing').'###'] = array(
+				'_MARKERS' => $lMarks,
 				'_MULTIPLE_SUBPARTS' => true,
 				'_SUBPARTS' => $listItems,
 			);
@@ -1116,8 +1258,8 @@ class tx_kbshop_pi1 extends tslib_pibase {
 	function renderOverlay($sconf, &$sp, &$ma, $content)	{
 		$oresult = false;
 		$oldConf = $this->conf;
-		unset($this->conf[$this->tskey.'.']['itemList.']['overlay.']);
-		unset($this->conf[$this->tskey.'.']['itemList.']['overlays.']);
+//		unset($this->conf[$this->tskey.'.']['itemList.']['overlay.']);
+//		unset($this->conf[$this->tskey.'.']['itemList.']['overlays.']);
 		if (is_array($sconf['conf.']))	{
 			$this->conf = t3lib_div::array_merge_recursive_overrule($this->conf, $sconf['conf.']);
 		}
@@ -1128,6 +1270,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		$oldPropertiesMerged = $this->propertiesMerged;
 		$oldLocalCobj = clone($this->localcObj);
 		$tuid = $this->localcObj->stdWrap($sconf['table'], $sconf['table.']);
+		$ownSection = $this->localcObj->stdWrap($sconf['section'], $sconf['section.']);
 		$marker = $this->localcObj->stdWrap($sconf['marker'], $sconf['marker.']);
 		$usemarker = $marker?$marker:$tuid;
 		if (t3lib_div::testInt($tuid))	{
@@ -1142,33 +1285,65 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			$this->properties = false;
 			$this->initCategoriesAndProperties();
 			$this->setLabelMarkers($ma, false, $usemarker.'_');
-			$oresult = $this->getList(array($ouid));
+			$ouids = t3lib_div::intExplode(',', $ouid);
+			$oresult = $this->getList($ouids);
+			/*
+			if ($tuid==13)	{
+				print_r($oresult);
+				exit();
+			}
+			*/
 		} elseif (is_array($GLOBALS['TCA'][$tuid]['ctrl']))	{
 			t3lib_div::loadTCA($tuid);
-			$ouid = $this->localcObj->stdWrap($sconf['uid'], $sconf['uid.']);
-			$rec = tx_kbshop_abstract::getRecord($tuid, $ouid);
-			$ofields = array('pid' => 'pid', 'uid' => 'uid', 'crdate' => 'crdate', 'tstamp' => 'tstamp', 'cruser_id' => 'cruser_id');
-			if ($df = $GLOBALS['TCA'][$tuid]['ctrl']['delete'])	{
-				$ofields[$df] = $df;
-			}
-			foreach ($GLOBALS['TCA'][$tuid]['columns'] as $fkey => $fa)	{
-				$ofields[$fkey] = $fkey;
-			}
-			if (is_array($rec)&&count($rec))	{
-				$oresult = array(
-					'rows' => array(
-						$rec,
-					),
-					'fields' => $ofields,
-				);
+			if ($sconf['select.'])	{
+				$res = $this->localcObj->exec_getQuery($tuid, $sconf['select.']);
+				$ofields = array('pid' => 'pid', 'uid' => 'uid', 'crdate' => 'crdate', 'tstamp' => 'tstamp', 'cruser_id' => 'cruser_id');
+				if ($df = $GLOBALS['TCA'][$tuid]['ctrl']['delete'])	{
+					$ofields[$df] = $df;
+				}
+				foreach ($GLOBALS['TCA'][$tuid]['columns'] as $fkey => $fa)	{
+					$ofields[$fkey] = $fkey;
+				}
+				$oresult = array();
+				$oresult['fields'] = $ofields;
+				$oresult['rows'] = array();
+				while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
+					$oresult['rows'][] = $rec;
+				}
+			} else	{
+				$ouid = $this->localcObj->stdWrap($sconf['uid'], $sconf['uid.']);
+				$ouids = t3lib_div::intExplode(',', $ouid);
+				$ofields = array('pid' => 'pid', 'uid' => 'uid', 'crdate' => 'crdate', 'tstamp' => 'tstamp', 'cruser_id' => 'cruser_id');
+				if ($df = $GLOBALS['TCA'][$tuid]['ctrl']['delete'])	{
+					$ofields[$df] = $df;
+				}
+				foreach ($GLOBALS['TCA'][$tuid]['columns'] as $fkey => $fa)	{
+					$ofields[$fkey] = $fkey;
+				}
+				$oresult = array();
+				$oresult['fields'] = $ofields;
+				$oresult['rows'] = array();
+				foreach ($ouids as $ouid)	{
+					$rec = tx_kbshop_abstract::getRecord($tuid, $ouid);
+					if (is_array($rec)&&count($rec))	{
+						$oresult['rows'][] = $rec;
+					}
+				}
 			}
 		}
+
 		// Render items
 		$subma = array();
 		if (is_array($oresult['rows'])&&count($oresult['rows']))	{
 			$this->renderRows($subma, $content, $oresult['rows'], $oresult['fields'], $oresult, strtoupper($usemarker), $usemarker);
-			$sp = array_merge($sp, $subma['_SUBPARTS']['###PART_'.$usemarker.'###']['_SUBPARTS']['###LIST_'.$usemarker.'###'][0]['_SUBPARTS']);
-			$ma = array_merge($ma, $subma['_SUBPARTS']['###PART_'.$usemarker.'###']['_SUBPARTS']['###LIST_'.$usemarker.'###'][0]['_MARKERS']);
+//			$sp = array_merge($sp, $subma['_SUBPARTS']['###PART_'.$usemarker.'###']['_SUBPARTS']['###LIST_'.$usemarker.'###'][0]['_SUBPARTS']);
+//			$ma = array_merge($ma, $subma['_SUBPARTS']['###PART_'.$usemarker.'###']['_SUBPARTS']['###LIST_'.$usemarker.'###'][0]['_MARKERS']);
+			if ($ownSection)	{
+				$sp['###PART_'.$usemarker.'###'] = $subma['_SUBPARTS']['###PART_'.$usemarker.'###'];
+			} else	{
+				$sp = array_merge($sp, $subma['_SUBPARTS']['###PART_'.$usemarker.'###']['_SUBPARTS']['###LIST_'.$usemarker.'###'][0]['_SUBPARTS']);
+				$ma = array_merge($ma, $subma['_SUBPARTS']['###PART_'.$usemarker.'###']['_SUBPARTS']['###LIST_'.$usemarker.'###'][0]['_MARKERS']);
+			}
 		}
 		$this->localcObj = $oldLocalCobj;
 		$this->config->entriesTable = $oldEntriesTable;
@@ -1188,11 +1363,26 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			}
 		}
 	}
-	function insertSubparts(&$sp, $conf)	{
+
+	function insertSubparts(&$sp, $conf, $section = '')	{
 		if (is_array($conf))	{
 			foreach ($conf as $key => $subconf)	{
 				if (strpos($key, '.')===false)	{
-					$sp['###'.$key.'###'] = $this->localcObj->cObjGetSingle($subconf, $conf[$key.'.']);
+					$ret = $this->localcObj->cObjGetSingle($subconf, $conf[$key.'.']);
+					switch ($ret)	{
+						case '__false':
+							$sp['###SUBPART_'.($section?($section.'_'):'ITEM_').$key.'###'] = false;
+							$sp['###SUBPART_'.($section?($section.'_'):'ITEM_').$key.'Empty###'] = true;
+						break;
+						case '__true':
+							$sp['###SUBPART_'.($section?($section.'_'):'ITEM_').$key.'###'] = true;
+							$sp['###SUBPART_'.($section?($section.'_'):'ITEM_').$key.'Empty###'] = false;
+						break;
+						default:
+							$sp['###'.($section?($section.'_'):'ITEM_').$key.'###'] = $ret;
+							$sp['###SUBPART_'.($section?($section.'_'):'ITEM_').$key.'Empty###'] = false;
+						break;
+					}
 				}
 			}
 		}
@@ -1214,7 +1404,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				}
 				if ($fArr['type']==9)	{
 					if (intval($fArr['flexform']['data']['sDEF'][$this->config->lDEF]['field_maxitems'][$this->config->vDEF])>1)	{
-						$mmtable = $this->config->mmRelationTablePrefix.$fArr['__key'].$this->config->mmRelationTablePostfix;
+						$mmtable = $this->config->mmRelationTablePrefix.$this->tableKey.'_'.$fArr['__key'].$this->config->mmRelationTablePostfix;
 						$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid_foreign', $mmtable, 'uid_local='.$row['uid'], '', 'sorting');
 						$str = '';
 						if ($res)	{
@@ -1246,7 +1436,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			$fArr = $this->getDefaultType($field);
 		}
 		if ($field=='uid')	{
-			$this->setLinkMarkers($ma, $sp, $row, $prefix);
+			$this->setLinkMarkers($ma, $sp, $row, $prefix?$prefix:'ITEM_');
 		}
 		list($value, $set) = $this->getFieldRenderValue($fArr, $row[$field]);
 		$ma['###FIELD_VALUE_'.$prefix.$key.'###'] = $value;
@@ -1323,7 +1513,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				if (is_array($this->conf[$this->tskey.'.']['fieldConfig.']['time.']))	{
 					$res = $this->localcObj->stdWrap($value, $this->conf[$this->tskey.'.']['fieldConfig.']['time.']);
 				} else	{
-					$res = intval($value/3600).':'.intval(($value%3600)/60);
+					$res = intval($value/3600).':'.sprintf('%02d', intval(($value%3600)/60));
 				}
 			break;
 			case 13:		// Timesec
@@ -1333,7 +1523,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				if (is_array($this->conf[$this->tskey.'.']['fieldConfig.']['timesec.']))	{
 					$res = $this->localcObj->stdWrap($value, $this->conf[$this->tskey.'.']['fieldConfig.']['timesec.']);
 				} else	{
-					$res = intval($value/3600).':'.intval(($value%3600)/60).':'.intval($value%60);
+					$res = intval($value/3600).':'.sprintf('%02d', intval(($value%3600)/60)).':'.sprintf('%02d', intval($value%60));
 				}
 			break;
 			case 14:		// DateTime
@@ -1364,6 +1554,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			case 2:		// Text
 			case 8:		// String
 			case 11:		// File
+			case 17:		// File
 				if (strlen($value))	{
 					$set = true;
 				}
@@ -1421,9 +1612,11 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			$p = intval($this->piVars['p']);
 				// Link to previous matching item
 			if ($this->previousItem)	{
+				$t = tx_kbshop_abstract::getRecordTitle($this->config->entriesTable, $this->previousItemRec);
 				$sp['###LINK_'.$prefix.'singleViewPrevious###'] = true;
 				$sp['###LINK_'.$prefix.'singleViewPreviousEmpty###'] = false;
 				$page = $p-((!($this->onlyIdx%$this->itemCount))?1:0);
+				$ma['###LINK_'.$prefix.'singleViewPrevious_LABEL###'] = $this->hsc?htmlspecialchars($t):$t;
 				$ma['###LINK_'.$prefix.'singleViewPrevious_HREF###'] = $this->hsc?htmlspecialchars($this->singleViewLink($this->previousItem, $page)):$this->singleViewLink($this->previousItem, $page);
 			} else	{
 				$sp['###LINK_'.$prefix.'singleViewPrevious###'] = false;
@@ -1432,9 +1625,11 @@ class tx_kbshop_pi1 extends tslib_pibase {
 
 				// Link to next matching item
 			if ($this->nextItem)	{
+				$t = tx_kbshop_abstract::getRecordTitle($this->config->entriesTable, $this->nextItemRec);
 				$sp['###LINK_'.$prefix.'singleViewNext###'] = true;
 				$sp['###LINK_'.$prefix.'singleViewNextEmpty###'] = false;
 				$page = $p+((!(($this->onlyIdx+1)%$this->itemCount))?1:0);
+				$ma['###LINK_'.$prefix.'singleViewNext_LABEL###'] = $this->hsc?htmlspecialchars($t):$t;
 				$ma['###LINK_'.$prefix.'singleViewNext_HREF###'] = $this->hsc?htmlspecialchars($this->singleViewLink($this->nextItem, $page)):$this->singleViewLink($this->nextItem, $page);
 			} else	{
 				$sp['###LINK_'.$prefix.'singleViewNext###'] = false;
@@ -1445,6 +1640,10 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			// Link back to list view
 		$ma['###LINK_'.$prefix.'listView_HREF###'] = $this->hsc?htmlspecialchars($this->singleViewLink(0, intval($this->onlyIdx/$this->itemCount))):$this->singleViewLink(0, intval($this->onlyIdx/$this->itemCount));
 	}
+
+
+
+
 
 	function renderCriteriaSelector(&$markerTree)	{
 		if (is_array($this->criteriaItems)&&count($this->criteriaItems))	{
@@ -1582,8 +1781,8 @@ class tx_kbshop_pi1 extends tslib_pibase {
 	function getList($uidList)	{
 		global $TCA;
 		$c = array();
-		$c['fields'] = array('uid' => 'uid', 'category' => 'category');
-		$c['selectFields'] = array('uid' => $this->config->entriesTable.'.uid AS uid', 'category' => $this->config->entriesTable.'.category AS category');
+		$c['fields'] = array('uid' => 'uid', 'crdate' => 'crdate', 'tstamp' => 'tstamp', 'category' => 'category');
+		$c['selectFields'] = array('uid' => $this->config->entriesTable.'.uid AS uid', 'crdate' => $this->config->entriesTable.'.crdate AS crdate', 'tstamp' => $this->config->entriesTable.'.tstamp AS tstamp', 'category' => $this->config->entriesTable.'.category AS category');
 		if (($lf = $GLOBALS['TCA'][$this->config->entriesTable]['ctrl']['languageField']) && ($origp = $GLOBALS['TCA'][$this->config->entriesTable]['ctrl']['transOrigPointerField']))	{
 			$c['selectFields']['pid'] = $this->config->entriesTable.'.pid AS pid';
 			$c['selectFields'][$lf] = $this->config->entriesTable.'.'.$lf.' AS '.$lf;
@@ -1640,6 +1839,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		global $TCA;
 		$table = $this->config->sectionTablePrefix.$this->tableKey.$this->config->sectionTableCenter.$key.$this->config->sectionTablePostfix;
 		$ret = array();
+
 		if (intval($GLOBALS['TCA'][$table]['ctrl']['virtual']))	{
 			if (is_array($this->data[$table]))	{
 				foreach ($this->data[$table] as $curUid => $row)	{
@@ -1655,7 +1855,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				$sFields[$key] = $table.'.'.$field.' AS '.$field;
 			}
 			if  (!$GLOBALS['TCA'][$table])	{
-				include($this->config->configExtBasePAth.'ext_section_tables.php');
+				include($this->config->configExtBasePath.'ext_section_tables.php');
 				t3lib_div::loadTCA($table);
 			}
 			$where = $table.'.parent='.intval($uid).' AND '.tx_kbshop_abstract::enableFields($table);
@@ -1709,6 +1909,19 @@ class tx_kbshop_pi1 extends tslib_pibase {
 					$f[] = $st.'.uid AS SECT_'.$field.'___uid';
 					*/
 				break;
+				case 100:
+					$skey = substr($sect , strlen($this->config->fieldPrefix));
+					$key = substr($field, strlen($this->config->fieldPrefix));
+					if ($sect)	{
+						$c['sectionFieldsArray'][$sect][$key.'_lat'] = $field.'_lat';
+						$c['sectionFieldsArray'][$sect][$key.'_lng'] = $field.'_lng';
+					} else	{
+						$c['selectFields'][$key.'_lat'] = ($sect?$this->config->sectionTablePrefix.$this->tableKey.$this->config->sectionTableCenter.$skey.$this->config->sectionTablePostfix:$this->config->entriesTable).'.'.$field.'_lat AS '.($sect?'SECT_'.$sect.'___':'').$field.'_lat';
+						$c['selectFields'][$key.'_lng'] = ($sect?$this->config->sectionTablePrefix.$this->tableKey.$this->config->sectionTableCenter.$skey.$this->config->sectionTablePostfix:$this->config->entriesTable).'.'.$field.'_lng AS '.($sect?'SECT_'.$sect.'___':'').$field.'_lng';
+						$c['fields'][$key.'_lat'] = ($sect?'SECT_'.$sect.'___':'').$field.'_lat';
+						$c['fields'][$key.'_lng'] = ($sect?'SECT_'.$sect.'___':'').$field.'_lng';
+					}
+				break;
 				default:
 					$skey = substr($sect , strlen($this->config->fieldPrefix));
 					$key = substr($field, strlen($this->config->fieldPrefix));
@@ -1726,6 +1939,26 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		}
 	}
 
+	function processCustomCompare($c, $table = '')	{
+		if (preg_match_all('/(\|\|\|.*\|\|\|)/U', $c, $matches, PREG_SET_ORDER)>0)	{
+			foreach ($matches as $match)	{
+				$e = substr(substr($match[1], 3), 0, -3);
+				$e = $this->localcObj->insertData($e);
+				$e = implode(',', t3lib_div::intExplode(',', $e));
+				$c = str_replace($match[1], '('.$e.')', $c);
+			}
+		}
+		if (preg_match_all('/(\|\|.*\|\|)/U', $c, $matches, PREG_SET_ORDER)>0)	{
+			foreach ($matches as $match)	{
+				$e = substr(substr($match[1], 2), 0, -2);
+				$e = $this->localcObj->insertData($e);
+				$c = str_replace($match[1], $GLOBALS['TYPO3_DB']->fullQuoteStr($e, $table), $c);
+			}
+		}
+		return $c;
+	}
+
+					
 
 	function getUidQueryWhereStr($whereParts, $as_postfix = '', $onStr = '', $noUserValue = false, $addLanguage = true)	{
 		$wp = array();
@@ -1738,76 +1971,92 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			$as_postfix = '';
 			$unset_idx = true;
 		}
-		foreach ($whereParts as $idx => $part)	{
-			if (is_array($part['subWhere'])&&count($part['subWhere'])&&$part['connector'])	{
-				list($sub_wp, $sub_join, $sub_ef, $wp_base_sub) = $this->getUidQueryWhereStr($part['subWhere'], $as_postfix, $onStr, $noUserValue, $addLanguage);
-				$wp[] = '('.implode($part['connector'], $sub_wp).')';
-				$joinNoEF = array_merge($joinNoEF, $sub_join);
-				$ef = array_merge_recursive($ef, $sub_ef);
-				$wp_base = array_merge_recursive($wp_base, $wp_base_sub);
-				continue;
-			}
-			if ($unset_idx)	{
-				$idx = '';
-			}
-			if ($noUserValue && $part['userValue'])	continue;
-			if ($part['table']==$this->config->entriesTable)	{
-				if ($part['MM'])	{
-					$joinNoEF[$part['MM'].$idx.$as_postfix] = ', '.$part['MM'].' AS '.$part['MM'].$idx.$as_postfix;
-					$c = str_replace('###FIELDNAME###', $part['MM'].$idx.$as_postfix.'.uid_foreign', $part['compareStr']);
-					$c = $this->replaceSortFields($c, $whereParts);
+		if (is_array($whereParts)&&count($whereParts))	{
+			foreach ($whereParts as $idx => $part)	{
+				if (is_array($part['subWhere'])&&count($part['subWhere'])&&$part['connector'])	{
+					list($sub_wp, $sub_join, $sub_ef, $wp_base_sub) = $this->getUidQueryWhereStr($part['subWhere'], $as_postfix, $onStr, $noUserValue, $addLanguage);
+					$wp[] = '('.implode($part['connector'], $sub_wp).')';
+					$joinNoEF = array_merge($joinNoEF, $sub_join);
+					$ef = array_merge_recursive($ef, $sub_ef);
+					$wp_base = array_merge_recursive($wp_base, $wp_base_sub);
+					continue;
+				}
+				if ($unset_idx)	{
+					$idx = '';
+				}
+				if ($noUserValue && $part['userValue'])	continue;
+				if ($part['table']==$this->config->entriesTable)	{
+					if ($part['MM'])	{
+						$joinNoEF[$part['MM'].$idx.$as_postfix] = ', '.$part['MM'].' AS '.$part['MM'].$idx.$as_postfix;
+						$c = $part['compareStr'];
+						$c = $this->processCustomCompare($c, $part['table']);
+						$c = str_replace('###FIELDNAME###', $part['MM'].$idx.$as_postfix.'.uid_foreign', $c);
+						$c = str_replace('###FE_USER_ID###', intval($GLOBALS['TSFE']->fe_user->user['uid']), $c);
+						$c = $this->replaceSortFields($c, $whereParts);
+						if ((strpos($c, '###VALUE###')!==false)&&$part['value'])	{
+							$c = str_replace('###VALUE###', $GLOBALS['TYPO3_DB']->quoteStr($part['value'], $part['table']), $c);
+						}
+						$c = str_replace('###TABLE###', $part['table'].$as_postfix, $c);
+						$c = str_replace('###ENTRIES_TABLE###', $this->config->entriesTable.$as_postfix, $c);
+						$wp[] = $c;
+						$wp_base['__join_'.md5(rand(0, 0x7fffffff))] = $part['MM'].$idx.$as_postfix.'.uid_local='.$this->config->entriesTable.$as_postfix.'.uid';
+					} else	{
+						$c = $part['compareStr'];
+						$c = $this->processCustomCompare($c, $part['table']);
+						//
+						$c = str_replace('###FIELDNAME###', $this->config->entriesTable.$as_postfix.'.'.$part['field'], $c);
+						$c = str_replace('###FE_USER_ID###', intval($GLOBALS['TSFE']->fe_user->user['uid']), $c);
+						if ((strpos($c, '###VALUE###')!==false)&&$part['value'])	{
+							$c = str_replace('###VALUE###', $GLOBALS['TYPO3_DB']->quoteStr($part['value'], $part['table']), $c);
+						}
+						$c = str_replace('###TABLE###', $part['table'], $c);
+						$c = str_replace('###ENTRIES_TABLE###', $this->config->entriesTable.$as_postfix, $c);
+						if ($onStr)	{
+							$onStr .= ' AND '.$c;
+						} else	{
+							$wp[] = $c;
+						}
+					}
+				} else	{
+					if ($part['MM'])	{
+						if (substr($part['MM'], -strlen($this->config->mmRelationTablePostfix))!=$this->config->mmRelationTablePostfix)	{
+							$sidx = '';
+						} else	{
+							$sidx = $idx;
+						}
+						$join[$part['table']] = ', '.$part['table'].' AS '.$part['table'].$as_postfix;
+						$c = str_replace('###FIELDNAME###', $part['MM'].$sidx.$as_postfix.'.uid_foreign', $part['compareStr']);
+						$lf = $TCA[$table]['ctrl']['label'];
+						$c = str_replace('###LABELFIELDNAME###', $part['table'].$as_postfix.'.'.$lf, $part['compareStr']);
+						$c = $this->replaceSortFields($c, $whereParts);
+					} else	{
+						$join[$part['table']] = ', '.$part['table'].' AS '.$part['table'].$as_postfix;
+						$c = str_replace('###FIELDNAME###', $part['table'].$as_postfix.'.'.$part['field'], $part['compareStr']);
+						$c = str_replace('###LABELFIELDNAME###', $part['table'].$as_postfix.'.'.$part['field'], $part['compareStr']);
+					}
 					if ((strpos($c, '###VALUE###')!==false)&&$part['value'])	{
 						$c = str_replace('###VALUE###', $GLOBALS['TYPO3_DB']->quoteStr($part['value'], $part['table']), $c);
 					}
 					$c = str_replace('###TABLE###', $part['table'].$as_postfix, $c);
 					$c = str_replace('###ENTRIES_TABLE###', $this->config->entriesTable.$as_postfix, $c);
-					$wp[] = $c;
-					$wp_base['__join_'.md5(rand(0, 0x7fffffff))] = $part['MM'].$idx.$as_postfix.'.uid_local='.$this->config->entriesTable.$as_postfix.'.uid';
-				} else	{
-					$c = str_replace('###FIELDNAME###', $this->config->entriesTable.$as_postfix.'.'.$part['field'], $part['compareStr']);
-					if ((strpos($c, '###VALUE###')!==false)&&$part['value'])	{
-						$c = str_replace('###VALUE###', $GLOBALS['TYPO3_DB']->quoteStr($part['value'], $part['table']), $c);
-					}
-					$c = str_replace('###TABLE###', $part['table'], $c);
-					$c = str_replace('###ENTRIES_TABLE###', $this->config->entriesTable.$as_postfix, $c);
 					if ($onStr)	{
 						$onStr .= ' AND '.$c;
+						$onStr .= ' AND '.$part['table'].$as_postfix.'.parent='.$this->config->entriesTable.$as_postfix.'.uid';
+						if ($part['MM'])	{
+							$join[$part['MM']] = ' LEFT JOIN '.$part['MM'].' AS '.$part['MM'].$idx.$as_postfix.' ON '.$part['table'].$as_postfix.'.uid='.$part['MM'].$idx.$as_postfix.'.uid_local';
+						}
 					} else	{
-						$wp[] = $c;
-					}
-				}
-			} else	{
-				if ($part['MM'])	{
-					if (substr($part['MM'], -strlen($this->config->mmRelationTablePostfix))!=$this->config->mmRelationTablePostfix)	{
-						$sidx = '';
-					} else	{
-						$sidx = $idx;
-					}
-					$join[$part['table']] = ', '.$part['table'].' AS '.$part['table'].$as_postfix;
-					$c = str_replace('###FIELDNAME###', $part['MM'].$sidx.$as_postfix.'.uid_foreign', $part['compareStr']);
-					$c = $this->replaceSortFields($c, $whereParts);
-				} else	{
-					$join[$part['table']] = ', '.$part['table'].' AS '.$part['table'].$as_postfix;
-					$c = str_replace('###FIELDNAME###', $part['table'].$as_postfix.'.'.$part['field'], $part['compareStr']);
-				}
-				if ((strpos($c, '###VALUE###')!==false)&&$part['value'])	{
-					$c = str_replace('###VALUE###', $GLOBALS['TYPO3_DB']->quoteStr($part['value'], $part['table']), $c);
-				}
-				$c = str_replace('###TABLE###', $part['table'].$as_postfix, $c);
-				$c = str_replace('###ENTRIES_TABLE###', $this->config->entriesTable.$as_postfix, $c);
-				if ($onStr)	{
-					$onStr .= ' AND '.$c;
-					$onStr .= ' AND '.$part['table'].$as_postfix.'.parent='.$this->config->entriesTable.$as_postfix.'.uid';
-					if ($part['MM'])	{
-						$join[$part['MM']] = ' LEFT JOIN '.$part['MM'].' AS '.$part['MM'].$idx.$as_postfix.' ON '.$part['table'].$as_postfix.'.uid='.$part['MM'].$idx.$as_postfix.'.uid_local';
-					}
-				} else	{
-					if ($part['MM'])	{
-						$wp[] = $c;
-						$join[$sidx.$part['MM']] = ', '.$part['MM'].' AS '.$part['MM'].$sidx.$as_postfix;
-						$wp_base['__join_'.md5(rand(0, 0x7fffffff))] = $part['table'].$as_postfix.'.uid='.$part['MM'].$sidx.$as_postfix.'.uid_local';
-					} else	{
-						$wp[] = '('.$c.' AND '.$part['table'].$as_postfix.'.parent='.$this->config->entriesTable.$as_postfix.'.uid)';
+						if ($part['MM'])	{
+							$wp[] = $c;
+							$join[$sidx.$part['MM']] = ', '.$part['MM'].' AS '.$part['MM'].$sidx.$as_postfix;
+							$wp_base['__join_'.md5(rand(0, 0x7fffffff))] = $part['table'].$as_postfix.'.uid='.$part['MM'].$sidx.$as_postfix.'.uid_local';
+						} else	{
+							if ($part['orig_table']&&$part['orig_field'])	{
+								$wp[] = '('.$c.' AND '.$part['orig_table'].$as_postfix.'.uid='.$this->config->entriesTable.$as_postfix.'.'.$part['orig_field'].')';
+							} else	{
+								$wp[] = '('.$c.' AND '.$part['table'].$as_postfix.'.parent='.$this->config->entriesTable.$as_postfix.'.uid)';
+							}
+						}
 					}
 				}
 			}
@@ -1821,7 +2070,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		$rj = array();
 		$lpf = $GLOBALS['TCA'][$this->config->entriesTable]['ctrl']['transOrigPointerField'];
 		$lf = $GLOBALS['TCA'][$this->config->entriesTable]['ctrl']['languageField'];
-		if ($addLanguage && $GLOBALS['TSFE']->sys_language_content)	{
+		if ($addLanguage && $lf && $GLOBALS['TSFE']->sys_language_content)	{
 			$joinNoEF[$this->config->entriesTable.'_localized'] = 
 				( ($this->OLmode=='hideNonTranslated') ? ', ' : ' LEFT JOIN ' ).
 				$this->config->entriesTable.' AS '.$this->config->entriesTable.'_localized'.
@@ -1847,7 +2096,9 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			$ef .= ' AND '.$this->config->entriesTable.$as_postfix.'.sys_language_uid='.((($this->OLmode==='hideNonTranslated')&&$GLOBALS['TSFE']->sys_language_content)?'1':'0');
 		}
 		*/
-		$ef[$this->config->entriesTable.$as_postfix.'.sys_language_uid'] = $this->config->entriesTable.$as_postfix.'.sys_language_uid=0';
+		if ($lf = $GLOBALS['TCA']['ctrl']['languageField'])	{
+			$ef[$this->config->entriesTable.$as_postfix.'.'.$lf] = $this->config->entriesTable.$as_postfix.'.'.$lf.'=0';
+		}
 		$join = array_merge($rj, $joinNoEF);
 		return array($wp, $join, $ef, $wp_base);
 	}
@@ -1918,6 +2169,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		$GLOBALS['TYPO3_DB']->sql_free_result($res);
 		if ($row)	{
 			$this->previousItem = $row['uid'];
+			$this->previousItemRec = tx_kbshop_abstract::getRecord($this->config->entriesTable, $row['uid']);
 		}
 
 		list($order, $where) = $this->getOrderString('__1', $valArr);
@@ -1931,6 +2183,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		$GLOBALS['TYPO3_DB']->sql_free_result($res);
 		if ($row)	{
 			$this->nextItem = $row['uid'];
+			$this->nextItemRec = tx_kbshop_abstract::getRecord($this->config->entriesTable, $row['uid']);
 		}
 
 		return array(intval($singleUid));
@@ -1972,7 +2225,16 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			if ($itemCount['MM'])	{
 				$asp = -1;
 			}
-			list($wp, $join, $tmp1, $wp_base) = $this->getUidQueryWhereStr($this->whereParts, $asp, '', true);
+			list($wp1, $join1, $tmp1_1, $wp_base1) = $this->getUidQueryWhereStr($this->searchParts, $asp, '', true);
+			list($wp2, $join2, $tmp1_2, $wp_base2) = $this->getUidQueryWhereStr($this->whereParts, $asp, '', true);
+			if (count($wp1))	{
+				$wp = array_merge(array('('.implode(' OR ', $wp1).')'), $wp2);
+			} else	{
+				$wp = $wp2;
+			}
+			$join = array_merge($join1, $join2);
+			$tmp1 = array_merge($tmp1_1, $tmp1_2);
+			$wp_base = array_merge($wp_base1, $wp_base2);
 			if ($this->conf['criteriaSelector.']['dependency'])	{
 				list($wp_f, $join_f, $ef, $wp_base_f) = $this->getUidQueryWhereStr($this->criteriaItems, $asp, '', true);
 			} else	{
@@ -2011,7 +2273,16 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			}
 			$query = 'SELECT DISTINCT('.$fi.') AS uid FROM '.implode('', $join).' WHERE '.$ef.(count($wp_base)?' AND '.implode(' AND ', $wp_base):'').(count($wp)?' AND ('.implode($this->criteriaConnector, $wp).')':'').' ORDER BY '.$order.';';
 		} else	{
-			list($wp, $join, $ef, $wp_base) = $this->getUidQueryWhereStr($this->whereParts);
+			list($wp1, $join1, $ef1, $wp_base1) = $this->getUidQueryWhereStr($this->searchParts);
+			list($wp2, $join2, $ef2, $wp_base2) = $this->getUidQueryWhereStr($this->whereParts);
+			if (count($wp1))	{
+				$wp = array_merge(array('('.implode(' OR ', $wp1).')'), $wp2);
+			} else	{
+				$wp = $wp2;
+			}
+			$join = array_merge($join1, $join2);
+			$ef = array_merge($ef1, $ef2);
+			$wp_base = array_merge($wp_base1, $wp_base2);
 			$ef = implode(' AND ', $ef);
 			$offset = $itemCount*$pointer;
 			if ($itemCount<0)	{
@@ -2054,6 +2325,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				} else	{
 					$where = $field['table'].'.'.$field['field'].'='.$fTable.'.uid';
 				}
+				$where .= ' AND '.tx_kbshop_abstract::enableFields($fTable);
 			break;
 		}
 		return array($order, $join, $where);
@@ -2093,6 +2365,9 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		);
 		return array($selector, '');
 	}
+
+
+
 
 	function getCriteriaOptionsMarkerArray($critItem, $idx)	{
 		$markerArray = array();
@@ -2163,6 +2438,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			/*
 			 * TYPEADD
 			 */
+			case 17:		// User
 			case 8:			// String
 				if ($this->config->pi_md5StringOptionValues)	{
 					$key = substr(md5($value), 0, $this->config->pi_md5StringOptionValues);
@@ -2323,8 +2599,9 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			}
 		}
 		$this->lastRelUids = '';
-		if (is_array($fArr)&&(intval($flex['field_maxitems'][$this->config->vDEF])>1))	{
-			$mmtable = $this->config->mmRelationTablePrefix.$fArr['__key'].$this->config->mmRelationTablePostfix;
+		$sourceTable = $this->config->entriesTablePrefix.$this->tableKey;
+		if (is_array($fArr)&&(intval($flex['field_maxitems'][$this->config->vDEF])>1)&&(!intval($flex['noMM'][$this->config->vDEF]))&&(!$GLOBALS['TCA'][$sourceTable]['ctrl']['virtual']))	{
+			$mmtable = $this->config->mmRelationTablePrefix.$this->tableKey.'_'.$fArr['__key'].$this->config->mmRelationTablePostfix;
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid_foreign', $mmtable, 'uid_local='.$this->localcObj->data['uid'], '', 'sorting');
 			$str1 = '';
 			$str2 = '';
@@ -2333,6 +2610,19 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				$str2 .= ($str2?', ':'').$this->getDBRelLabel($flex, $row['uid_foreign'], $fieldname);
 			}
 			$GLOBALS['TYPO3_DB']->sql_free_result($res);
+			if (strlen($str1)&&strlen($str2))	{
+				$this->labelCacheMM[$table][$fArr['__key'].$this->localcObj->data['uid']] = array($str1, $str2);
+			}
+			$this->lastRelUids = $str1;
+			return $str2;
+		} elseif (is_array($fArr)&&(intval($flex['field_maxitems'][$this->config->vDEF])>1)&&intval($flex['noMM'][$this->config->vDEF]))	{
+			$parts = t3lib_div::trimExplode(',', $value);
+			$str1 = '';
+			$str2 = '';
+			foreach ($parts as $uid_foreign)	{
+				$str1 .= ($str1?',':'').$uid_foreign;
+				$str2 .= ($str2?', ':'').$this->getDBRelLabel($flex, $uid_foreign, $fieldname);
+			}
 			if (strlen($str1)&&strlen($str2))	{
 				$this->labelCacheMM[$table][$fArr['__key'].$this->localcObj->data['uid']] = array($str1, $str2);
 			}
@@ -2415,81 +2705,106 @@ class tx_kbshop_pi1 extends tslib_pibase {
 	
 
 	function getOrderString($as_postfix = false, $orig_postfix = false, $invert = false, $minmax = false)	{
-		$order = tx_kbshop_abstract::getFlexformChilds($this->cObj->data['pi_flexform'], 'list_order_section', 'list_order_item', array('field_list_order', 'field_order_custom', 'field_list_direction'), 'listView', $this->config->lDEF, $this->config->vDEF);
+		$order = tx_kbshop_abstract::getFlexformChilds($this->cObj->data['pi_flexform'], 'list_order_section', 'list_order_item', array('field_list_order', 'field_order_custom', 'field_list_direction', 'field_order_user'), 'listView', $this->config->lDEF, $this->config->vDEF);
 		$ret = '';
 		$where = '';
 		$oldEqual = '';
 		$mmStr = '';
 		$sortArr = array();
 		$join = array();
-		foreach ($order as $oArr)	{
-			$f = $oArr['field_list_order'];
-			if (substr($f, 0, $l = strlen($this->config->piComparePrefix))===$this->config->piComparePrefix)	{
-				$f = substr($f, $l);
-			} 
-			list($f, $t) = explode('___', $f, 2);
-			if (!strlen($t))	{
-				$t = $this->config->entriesTable;
-			}
-			$sortArr[] = array(
-				'table' => $t,
-				'field' => $f,
-			);
-			$origT = $t;
-			if (strlen($as_postfix))	{
-				$origT = $t;
-				$t = $t.$as_postfix;
-			}
-			$to = $oArr['field_order_custom'];
-			$to = str_replace('###ENTRIES_TABLE###', $this->config->entriesTable.$as_postfix, $to);
-			$to = str_replace('###TABLE###', $t, $to);
-			$to = str_replace('###FIELD###', $f, $to);
-			if ($minmax)	{
-				$ret .= (strlen($ret)?', ':'').$t.'___'.$f.'___order '.(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'ASC':'DESC');
-				if (($mm = $GLOBALS['TCA'][$origT]['columns'][$f]['config']['MM'])&&($ft = $GLOBALS['TCA'][$origT]['columns'][$f]['config']['foreign_table']))	{
-					$join[$t.'.'.$f] = ' LEFT JOIN '.$mm.' AS '.$mm.'_'.$f.' ON '.$t.'.uid='.$mm.'_'.$f.'.uid_local LEFT JOIN '.$ft.' AS '.$ft.'_'.$f.' ON '.$mm.'_'.$f.'.uid_foreign='.$ft.'_'.$f.'.uid';
-					$ftsf = tx_kbshop_abstract::getSortingField($ft);
-					if (preg_match('/^\s*ORDER\s+BY\s+(.*)$/is', $ftsf, $matches)>0)	{
-						$ftsf = $matches[1];
-					}
-					list($ftsf) = t3lib_div::trimExplode(',', $ftsf, 1);
-					if (strlen($to))	{
-						$mmStr .= (strlen($mmStr)?', ':'').(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'min(':'max(').$to.') AS '.$t.'___'.$f.'___order';
-					} else	{
-						$mmStr .= (strlen($mmStr)?', ':'').(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'min(':'max(').$ft.'_'.$f.'.'.$ftsf.') AS '.$t.'___'.$f.'___order';
-					}
-				} else	{
-					if (strlen($to))	{
-						$mmStr .= (strlen($mmStr)?', ':'').(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'min(':'max(').$to.') AS '.$t.'___'.$f.'___order';
-					} else	{
-						$mmStr .= (strlen($mmStr)?', ':'').(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'min(':'max(').$t.'.'.$f.') AS '.$t.'___'.$f.'___order';
-					}
-				}
+		$oIdx = 0;
+		$orderData = array();
+		foreach ($order as $oIdx => $oArr)	{
+			if ($oArr['field_order_user'])	{
+				$orderData['user'][$oIdx] = $oArr;
 			} else	{
-				if (strlen($to))	{
-					$ret .= (strlen($ret)?', ':'').$to.' '.(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'ASC':'DESC');
-				} else	{
-					$ret .= (strlen($ret)?', ':'').$t.'.'.$f.' '.(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'ASC':'DESC');
-				}
+				$orderData['static'][$oIdx] = $oArr;
 			}
-			if (strlen($as_postfix)&&(is_array($orig_postfix)||strlen($orig_postfix)))	{
-				$where .= 	(strlen($where)?' OR ':'').
-										'('.
-											($oldEqual?($oldEqual.' AND '):'').
+		}
+		list($okey, $odir) = explode('_', $this->piVars['o']);
+		foreach ($orderData as $oType => $order)	{
+			foreach ($order as $oIdx => $oArr)	{
+				$f = $oArr['field_list_order'];
+				if ($oType=='user')	{
+					$key = substr(md5($f), 0, 3);
+					if (($okey==$key)&&($odir=='A'))	{
+						$oArr['field_list_direction'] = 'asc';
+					} elseif (($okey==$key)&&($odir=='D'))	{
+						$oArr['field_list_direction'] = 'desc';
+					} else	{
+						continue;
+					}
+				}
+				$oIdx++;
+				if (substr($f, 0, $l = strlen($this->config->piComparePrefix))===$this->config->piComparePrefix)	{
+					$f = substr($f, $l);
+				} 
+				list($f, $t) = explode('___', $f, 2);
+				if (!strlen($t))	{
+					$t = $this->config->entriesTable;
+				}
+				$sortArr[] = array(
+					'table' => $t,
+					'field' => $f,
+				);
+				$origT = $t;
+				if (strlen($as_postfix))	{
+					$origT = $t;
+					$t = $t.$as_postfix;
+				}
+				$to = $oArr['field_order_custom'];
+				$to = $this->processCustomCompare($to, $t);
+				$to = str_replace('###ENTRIES_TABLE###', $this->config->entriesTable.$as_postfix, $to);
+				$to = str_replace('###TABLE###', $t, $to);
+				$to = str_replace('###FIELD###', $f, $to);
+				$to = str_replace('###FE_USER_ID###', intval($GLOBALS['TSFE']->fe_user->user['uid']), $to);
+				if ($minmax)	{
+					$ret .= (strlen($ret)?', ':'').$t.'___'.$f.'___order_'.$oIdx.' '.(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'ASC':'DESC');
+					if (($mm = $GLOBALS['TCA'][$origT]['columns'][$f]['config']['MM'])&&($ft = $GLOBALS['TCA'][$origT]['columns'][$f]['config']['foreign_table']))	{
+						$join[$t.'.'.$f] = ' LEFT JOIN '.$mm.' AS '.$mm.'_'.$f.' ON '.$t.'.uid='.$mm.'_'.$f.'.uid_local LEFT JOIN '.$ft.' AS '.$ft.'_'.$f.' ON '.$mm.'_'.$f.'.uid_foreign='.$ft.'_'.$f.'.uid';
+						$ftsf = tx_kbshop_abstract::getSortingField($ft);
+						if (preg_match('/^\s*ORDER\s+BY\s+(.*)$/is', $ftsf, $matches)>0)	{
+							$ftsf = $matches[1];
+						}
+						list($ftsf) = t3lib_div::trimExplode(',', $ftsf, 1);
+						if (strlen($to))	{
+							$mmStr .= (strlen($mmStr)?', ':'').(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'min(':'max(').$to.') AS '.$t.'___'.$f.'___order_'.$oIdx;
+						} else	{
+							$mmStr .= (strlen($mmStr)?', ':'').(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'min(':'max(').$ft.'_'.$f.'.'.$ftsf.') AS '.$t.'___'.$f.'___order_'.$oIdx;
+						}
+					} else	{
+						if (strlen($to))	{
+							$mmStr .= (strlen($mmStr)?', ':'').(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'min(':'max(').$to.') AS '.$t.'___'.$f.'___order_'.$oIdx;
+						} else	{
+							$mmStr .= (strlen($mmStr)?', ':'').(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'min(':'max(').$t.'.'.$f.') AS '.$t.'___'.$f.'___order_'.$oIdx;
+						}
+					}
+				} else	{
+					if (strlen($to))	{
+						$ret .= (strlen($ret)?', ':'').$to.' '.(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'ASC':'DESC');
+					} else	{
+						$ret .= (strlen($ret)?', ':'').$t.'.'.$f.' '.(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'ASC':'DESC');
+					}
+				}
+				if (strlen($as_postfix)&&(is_array($orig_postfix)||strlen($orig_postfix)))	{
+					$where .= 	(strlen($where)?' OR ':'').
+											'('.
+												($oldEqual?($oldEqual.' AND '):'').
+												$t.'.'.$f.
+													(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'>':'<').
+												(is_array($orig_postfix)?
+													$GLOBALS['TYPO3_DB']->fullQuoteStr($orig_postfix[$origT][$f], $origT):
+													($origT.$orig_postfix.'.'.$f)
+												).
+											')';
+					$oldEqual .= ($oldEqual?' AND ':'').
 											$t.'.'.$f.
-												(($invert xor (strtolower($oArr['field_list_direction'])=='asc'))?'>':'<').
+												'='.
 											(is_array($orig_postfix)?
 												$GLOBALS['TYPO3_DB']->fullQuoteStr($orig_postfix[$origT][$f], $origT):
-												($origT.$orig_postfix.'.'.$f)
-											).
-										')';
-				$oldEqual .= ($oldEqual?' AND ':'').
-										$t.'.'.$f.
-											'='.
-										(is_array($orig_postfix)?
-											$GLOBALS['TYPO3_DB']->fullQuoteStr($orig_postfix[$origT][$f], $origT):
-											$origT.$orig_postfix.'.'.$f
-										);
+												$origT.$orig_postfix.'.'.$f
+											);
+				}
 			}
 		}
 		$ret .= (strlen($ret)?', ':'').$this->config->entriesTable.$as_postfix.'.uid'.($invert?' DESC':' ASC');
@@ -2520,6 +2835,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		}
 		return '';
 	}
+
 
 	function setDefinedCriteria($crits = false)	{
 		global $TCA;
@@ -2593,8 +2909,8 @@ class tx_kbshop_pi1 extends tslib_pibase {
 						} else	{
 							$GLOBALS['TSFE']->register[$thash.'_'.$fhash] = intval($this->piVars['c'][$thash][$fhash]);
 						}
-						if ($maxitems > 1)	{
-							$mmt = $this->config->mmRelationTablePrefix.$fArr['__key'].$this->config->mmRelationTablePostfix;
+						if (($maxitems > 1)&&($fArr['type']==9))	{
+							$mmt = $this->config->mmRelationTablePrefix.$this->tableKey.'_'.$fArr['__key'].$this->config->mmRelationTablePostfix;
 						}
 						$allowUsersel = true;
 						$compareStr = '###FIELDNAME### IN (###VALUE###)';
@@ -2671,6 +2987,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 								$compareStr = '###FIELDNAME### < \'###VALUE###\'';
 							break;
 						}
+						$allowUsersel = true;
 					break;
 					case 6:		// Check
 						$allowUsersel = true;
@@ -2688,6 +3005,8 @@ class tx_kbshop_pi1 extends tslib_pibase {
 						$compareStr = '###FIELDNAME### = ###VALUE###';
 						$renderCheck = intval($crit['field_compare_rendercheck_multibool'])?true:false;
 					break;
+					case 17:		// User
+					break;
 					case 200:		// container
 						return $this->pi_getLL('error_invalid_criteria_field_container');
 					break;
@@ -2698,6 +3017,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 							return str_replace('###TYPE###', 'X'.$fArr['type'], $this->pi_getLL('error_invalid_criteria_field_unknown'));
 					break;
 				}
+				$customCompare = 0;
 				if (strlen($crit['field_compare_custom']))	{
 					$cs = trim($crit['field_compare_custom']);
 					if (substr($cs , 0, 1)==='<')	{
@@ -2712,6 +3032,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 					}
 					if (strlen($cs))	{
 						$compareStr = $cs;
+						$customCompare = 1;
 					}
 				}
 				if ($allowUsersel)	{
@@ -2742,7 +3063,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 							}
 							$compareStr .= ')';
 							$multiSortFields[$thash][$fhash][$idx] = true;
-						} else	{
+						} elseif (($fArr['type']!=7)&&($fArr['type']!=14)&&!$customCompare) {
 							$compareStr = '###FIELDNAME### = \'###VALUE###\'';
 						}
 						
@@ -2751,7 +3072,6 @@ class tx_kbshop_pi1 extends tslib_pibase {
 						} else	{
 							$pival = $this->piVars['c'][$thash][$fhash];
 						}
-
 							// Set return array:
 						$c = array(
 							'table' => $t,
@@ -2783,6 +3103,9 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				$value = $this->cObj->insertData($value);
 				$compareStr = str_replace('###VALUE###', $GLOBALS['TYPO3_DB']->quoteStr($value, $t), $compareStr);
 				$compareStr = str_replace('###RAWVALUE###', str_replace('\\%', '%', $GLOBALS['TYPO3_DB']->quoteStr($value, $t)), $compareStr);
+				$compareStr = $this->cObj->insertData($compareStr);
+
+
 				if ((!$disableNegate)&&(!$userValue)&&intval($crit['field_compare_negate']))	{
 					$compareStr = 'NOT ('.$compareStr.')';
 				}
@@ -2837,11 +3160,33 @@ class tx_kbshop_pi1 extends tslib_pibase {
 	function getDefaultType($f)	{
 		$type = 0;
 		switch ($f)	{
+			case 'pid':
+				$type = 9;
+				$flex = array(
+					'data' => array(
+						'sDEF' => array(
+							$this->config->lDEF => array(
+								'field_maxitems' => array(
+									$this->config->vDEF => 1,
+								),
+								'field_size' => array(
+									$this->config->vDEF => 1,
+								),
+								'field_table' => array(
+									$this->config->vDEF => 'pages',
+								),
+							),
+						),
+					),
+				);
+			break;
 			case 'uid':
 				$type = 5;
 			break;
 			case 'crdate':
 			case 'tstamp':
+				$type = 14;
+			break;
 			case 'starttime':
 			case 'endtime':
 				$type = 7;
@@ -2957,8 +3302,6 @@ class tx_kbshop_pi1 extends tslib_pibase {
 	 * @return	boolean		True, then save the document (data submitted)
 	 */
 	function doProcessData()	{
-		$this->sessionData = $GLOBALS['TSFE']->fe_user->getKey('ses', $this->prefixId);
-		$this->data = $this->sessionData['basket'];
 		$this->doSave = t3lib_div::_GP('doSave');
 		$out = $this->doSave || isset($_POST['_savedok_x']) || isset($_POST['_saveandclosedok_x']) || isset($_POST['_savedokview_x']) || isset($_POST['_savedoknew_x']);
 		$traverse = array();
@@ -2975,7 +3318,7 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			$rt = t3lib_div::trimExplode(',', $this->conf['forms.']['respectRequired'], 1);
 			foreach ($traverse as $table)	{
 				if (is_array($this->data[$table]))	{
-					$this->checkTableValues($table, $this->data[$table], false);
+					$this->checkTableValues($table, false);
 				}
 				foreach ($rt as $rtk)	{
 					list($rtt, $ct) = t3lib_div::trimExplode('=', $rtk, 1);
@@ -3028,8 +3371,11 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		}
 		$traverse = array_merge($traverse, $after);
 		$localCObj = clone($this->cObj);
+
+//		print_r($this->data);
 		foreach ($traverse as $table)	{
 				// Check if a virtual table got submitted.
+	
 			if (!$this->formTables[$table]) continue;
 			$tableVals = $this->data[$table];
 				// Fake access to virtual tables.
@@ -3044,6 +3390,8 @@ class tx_kbshop_pi1 extends tslib_pibase {
 					$newRow = $this->initTableRow($table, $id, $this->conf[$this->tskey.'.']['forms.']);
 					$row = t3lib_div::array_merge_recursive_overrule($newRow, $row);
 				}
+				$ovRow = $this->overrideTableFields($row, $table, $id, $this->conf[$this->tskey.'.']['forms.']);
+				$row = t3lib_div::array_merge_recursive_overrule($row, $ovRow);
 				$nTableVals['NEW'.$id] = $row;
 			}
 			$tmpData = array();
@@ -3065,6 +3413,11 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				unset($tmpArr['tstamp']);
 				unset($tmpArr['sorting']);
 				unset($tmpArr['__type']);
+				foreach ($GLOBALS['TCA'][$table]['columns'] as $fn => $fconf)	{
+					if ($fconf['config']['type']=='inline')	{
+						unset($tmpArr[$fn]);
+					}
+				}
 				$tmp2Arr = $tce->returnTables[$table][$id];
 				if (!is_array($tmp2Arr))	{
 					$tmp2Arr = array();
@@ -3114,31 +3467,72 @@ class tx_kbshop_pi1 extends tslib_pibase {
 					$this->data[$table] = $tce->returnTables[$table];
 				}
 			}
-			$formError |= $this->checkTableValues($table, $dArr);
-			$this->sessionData['basket'] = $this->data;
-			$GLOBALS['TSFE']->fe_user->setKey('ses', $this->prefixId, $this->sessionData);
-			$GLOBALS['TSFE']->fe_user->storeSessionData();
+			$formError |= $this->checkTableValues($table);
 			$this->formError = $this->formError||$formError;
-			$GLOBALS['BE_USER'] = $sBEU;
 		}
+
+		$GLOBALS['BE_USER'] = $sBEU;
+//		print_r($this->data);
+		$this->storeVTables();
 	}
-			
-				
-	function checkTableValues($table, $dArr, $setErrors = true)	{
+		
+
+	function storeVTables()	{
+		$session = array();
+		$user = array();
+		foreach ($this->data as $table => $tV)	{
+			if ($GLOBALS['TCA'][$table]['ctrl']['virtual']==1)	{
+				$session['basket'][$table] = $tV;
+			} elseif ($GLOBALS['TCA'][$table]['ctrl']['virtual']==2)	{
+				$user['basket'][$table] = $tV;
+			}
+		}
+		$GLOBALS['TSFE']->fe_user->setKey('ses', $this->prefixId, $session);
+		$GLOBALS['TSFE']->fe_user->setKey('user', $this->prefixId, $user);
+		$GLOBALS['TSFE']->fe_user->storeSessionData();
+	}
+
+
+	function getVTables()	{
+		$session = $GLOBALS['TSFE']->fe_user->getKey('ses', $this->prefixId);
+		$user = $GLOBALS['TSFE']->fe_user->getKey('user', $this->prefixId);
+		if (!is_array($session))	{
+			$session = array();
+		}
+		if (!is_array($user))	{
+			$user = array();
+		}
+		$data = t3lib_div::array_merge_recursive_overrule($session, $user);
+		$this->data = $data['basket'];
+	}
+
+	function checkTableValues($table, $setErrors = true)	{
 		$formError = false;
 		$localCObj = clone($this->cObj);
-		if (is_array($this->conf['forms.']['valid.'])||is_array($this->conf['forms.']['valid.']))	{
+$this->errorFields = array();
+		if (is_array($this->conf['forms.']['valid.'])||is_array($this->conf['forms.']['validRow.']))	{
 			$dArr = $this->data[$table];
 			if (is_array($dArr))	{
 				foreach ($dArr as $uid => $row)	{
 					$localCObj->start($row);
 					if ($this->conf['forms.']['validRow.'][$table] || $this->conf['forms.']['validRow.'][$table.'.'])	{
 						if (!$localCObj->stdWrap($this->conf['forms.']['validRow.'][$table], $this->conf['forms.']['validRow.'][$table.'.']))	{
-							unset($this->data[$table][$uid]);
-							continue;
+							if ($this->conf['forms.']['validRow.'][$table.'.']['setErrors']==1)	{
+									$formError |= true;
+									if ($m = $localCObj->stdWrap($this->conf['forms.']['errorMsg.'][$table.'.'][$field], $this->conf['forms.']['errorMsg.'][$table.'.'][$field.'.']))	{
+										$this->errorFields[$table][$field] = $m;
+									} else	{
+										$this->errorFields[$table][$field] = true;
+									}
+
+							}
+								unset($this->data[$table][$uid]);
+								continue;
+							
 						}
 					}
 					foreach ($row as $field => $value)	{
+						$ofieldn = substr($field, strlen($this->config->fieldPrefix));
 						if ($this->conf['forms.']['eval.'][$table.'.'][$field] || $this->conf['forms.']['eval.'][$table.'.'][$field.'.'])	{
 							$this->data[$table][$uid][$field] = $localCObj->data[$field] = $localCObj->stdWrap($this->conf['forms.']['eval.'][$table.'.'][$field], $this->conf['forms.']['eval.'][$table.'.'][$field.'.']);
 						}
@@ -3148,8 +3542,10 @@ class tx_kbshop_pi1 extends tslib_pibase {
 									$formError |= true;
 									if ($m = $localCObj->stdWrap($this->conf['forms.']['errorMsg.'][$table.'.'][$field], $this->conf['forms.']['errorMsg.'][$table.'.'][$field.'.']))	{
 										$this->errorFields[$table][$field] = $m;
+										$this->errorFields[$table][$ofieldn] = $m;
 									} else	{
 										$this->errorFields[$table][$field] = true;
+										$this->errorFields[$table][$ofieldn] = true;
 									}
 								}
 							}
@@ -3160,6 +3556,11 @@ class tx_kbshop_pi1 extends tslib_pibase {
 				$this->data[$table] = array();
 				foreach ($cur as $row)	{
 					$this->data[$table][$row['uid']] = $row;
+				}
+				foreach ($this->data as $t => $vals)	{
+					if (!(is_array($vals)&&count($vals)))	{
+						unset($this->data[$t]);
+					}
 				}
 			}
 		}
@@ -3176,6 +3577,91 @@ class tx_kbshop_pi1 extends tslib_pibase {
 			}
 			if ($ret&&is_array($conf['andsubif.']))	{
 				$ret &= $this->checkIf($conf['andsubif.']);
+			}
+		}
+		return $ret;
+	}
+
+
+
+	function renderSortSelector(&$markerTree)	{
+		$order = tx_kbshop_abstract::getFlexformChilds($this->cObj->data['pi_flexform'], 'list_order_section', 'list_order_item', array('field_list_order', 'field_order_custom', 'field_list_direction', 'field_order_user'), 'listView', $this->config->lDEF, $this->config->vDEF);
+		$orderUser = array();
+		foreach ($order as $oIdx => $oArr)	{
+			if ($oArr['field_order_user'])	{
+				$orderUser[$oIdx] = $oArr;
+			}
+		}
+		if (count($orderUser))	{
+			$selectors = array();
+			foreach ($orderUser as $idx => $orderItem)	{
+				$f = $orderItem['field_list_order'];
+				if (substr($f, 0, $l = strlen($this->config->piComparePrefix))===$this->config->piComparePrefix)	{
+					$f = substr($f, $l);
+				}
+				$orderField = $this->getField($f);
+				$sel = $this->getSortSelector($orderItem, $orderField);
+				$selectors = array_merge_recursive($selectors, $sel);
+			}
+			$markerTree['_SUBPARTS']['###PART_sortSelector###'] = array(
+				'_MULTIPLE_SUBPARTS' => true,
+				'_SUBPARTS' => $selectors,
+			);
+			$markerTree['_SUBPARTS']['###PART_sortSelectorEmpty###'] = false;
+		} else	{
+			$markerTree['_SUBPARTS']['###PART_sortSelectorCheckbox###'] = false;
+			$markerTree['_SUBPARTS']['###PART_sortSelector###'] = false;
+			$markerTree['_SUBPARTS']['###PART_sortSelectorEmpty###'] = true;
+		}
+	}
+
+	function getSortSelector($orderItem, $orderField)	{
+		$key = substr(md5($orderItem['field_list_order']), 0, 3);
+
+		$pi = array();
+		$pi['o'] = $key.'_A';
+		$pi['v'] = '';
+		$link = $this->pi_linkTP_keepPIvars_url($pi, $this->doCache);
+		$selVal = $this->conf['criteriaSelector.']['selectedValue']?$this->conf['criteriaSelector.']['selectedValue']:'selected="selected"';
+		$selected = $this->piVars['o']==($key.'_A')?$selVal:'';
+		$selector['###sortItem###'][0]['_MARKERS']	= array(
+			'###LINK_HREF###' => $link,
+			'###SELECTED###' => $selected,
+			'###LABEL###' => $orderField['title'].' (aufsteigend)',
+		);
+		$pi = array();
+		$pi['o'] = $key.'_D';
+		$pi['v'] = '';
+		$link = $this->pi_linkTP_keepPIvars_url($pi, $this->doCache);
+		$selVal = $this->conf['criteriaSelector.']['selectedValue']?$this->conf['criteriaSelector.']['selectedValue']:'selected="selected"';
+		$selected = $this->piVars['o']==($key.'_D')?$selVal:'';
+		$selector['###sortItem###'][1]['_MARKERS']	= array(
+			'###LINK_HREF###' => $link,
+			'###SELECTED###' => $selected,
+			'###LABEL###' => $orderField['title'].' (absteigend)',
+		);
+		if ($orderItem['field_list_direction']!='asc')	{
+			$selector['###sortItem###'] = array_reverse($selector['###sortItem###']);
+		}
+		return $selector;
+	}
+
+
+	function overrideTableFields($curRow, $table, $id, $conf)	{
+		$ret = array();
+		if (is_array($sconf = $conf['override.'][$table.'.']))	{
+			$localCObj = clone($this->cObj);
+			$localCObj->start($curRow);
+			$checked = array();
+			foreach ($sconf as $key => $sarr)	{
+				if (substr($key, -1)=='.')	{
+					$key = substr($key, 0, -1);
+				}
+				if ($checked[$key]) continue;
+				$val = $localCObj->stdWrap($sconf[$key], $sconf[$key.'.']);
+				if (strlen($val))	{
+					$ret[$key] = $val;
+				}
 			}
 		}
 		return $ret;

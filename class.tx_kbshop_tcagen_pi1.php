@@ -37,6 +37,7 @@ class tx_kbshop_tcagen_pi extends tx_kbshop_tcagen	{
 	var $labelPrefix = '';
 	var $fieldPostfix = '';
 	var $LLBuffer = array();
+	var $noPrefix = false;
 
 	function __initTCA(&$xml)	{
 		$xml = t3lib_div::xml2array(t3lib_div::getURL(t3lib_div::getFileAbsFileName($this->defaultDSFile)));
@@ -49,13 +50,23 @@ class tx_kbshop_tcagen_pi extends tx_kbshop_tcagen	{
 	function renderTCA($typeArr)	{
 		$allProps = array();
 		$cnt = 4;
-		foreach ($typeArr as $catIdx => $catProps)	{
-			$allProps = t3lib_div::array_merge_recursive_overrule($allProps, $catProps);
+		if (is_array($typeArr))	{
+			foreach ($typeArr as $catIdx => $catProps)	{
+				$trow = tx_kbshop_abstract::getRecord($this->config->categoriesTable, $catIdx);
+				if ($trow['tcaTable'])	{
+					$this->noPrefix = true;
+				}
+				$allProps = t3lib_div::array_merge_recursive_overrule($allProps, $catProps);
+			}
 		}
-		$fieldPrefix = $this->config->fieldPrefix;
+		$this->config->fieldPrefix_backup = $this->config->fieldPrefix;
+		if ($this->noPrefix)	{
+			$this->config->fieldPrefix = '';
+		}
 		$this->config->fieldPrefix = $this->config->piComparePrefix.$this->config->fieldPrefix;
+//		$this->config->fieldPrefix = $this->config->fieldPrefix;
 		parent::renderTCA($allProps);
-		$this->config->fieldPrefix = $fieldPrefix;
+		$this->config->fieldPrefix = $this->config->fieldPrefix_backup;
 			// Bring negate field to the end.
 		$negate = $this->xml['sheets']['criteria']['ROOT']['el']['list_criteria_section']['el']['list_criteria_item']['el']['field_compare_negate'];
 		unset($this->xml['sheets']['criteria']['ROOT']['el']['list_criteria_section']['el']['list_criteria_item']['el']['field_compare_negate']);
@@ -146,6 +157,13 @@ class tx_kbshop_tcagen_pi extends tx_kbshop_tcagen	{
 		return false;
 	}
 
+	function renderTCA__Link($xmlArr, $prop)	{
+		$this->renderTCA__ItemSet($xmlArr, $prop);
+		$this->renderTCA__ItemDisplayCond('field_compare_string', $prop['__key']);
+		$this->renderTCA__ItemDisplayCond($this->config->piComparePrefix.'string', $prop['__key']);
+		return false;
+	}
+
 	function renderTCA__String($xmlArr, $prop)	{
 		$this->renderTCA__ItemSet($xmlArr, $prop);
 		$this->renderTCA__ItemDisplayCond('field_compare_usersel', $prop['__key']);
@@ -165,7 +183,7 @@ class tx_kbshop_tcagen_pi extends tx_kbshop_tcagen	{
 		$this->renderTCA__ItemSet($xmlArr, $prop);
 		$this->renderTCA__ItemDisplayCond('field_compare_usersel', $prop['__key']);
 		$this->renderTCA__ItemDisplayCond('field_compare_number', $prop['__key']);
-		$this->renderTCA__ItemDisplayCond($this->config->piComparePrefix.'int', $prop['__key']);
+		$this->renderTCA__ItemDisplayCond($this->config->piComparePrefix.'double', $prop['__key']);
 		return false;
 	}
 
@@ -173,7 +191,7 @@ class tx_kbshop_tcagen_pi extends tx_kbshop_tcagen	{
 		$this->renderTCA__ItemSet($xmlArr, $prop);
 		$this->renderTCA__ItemDisplayCond('field_compare_usersel', $prop['__key']);
 		$this->renderTCA__ItemDisplayCond('field_compare_number', $prop['__key']);
-		$this->renderTCA__ItemDisplayCond($this->config->piComparePrefix.'double', $prop['__key']);
+		$this->renderTCA__ItemDisplayCond($this->config->piComparePrefix.'int', $prop['__key']);
 		return false;
 	}
 
@@ -228,6 +246,11 @@ class tx_kbshop_tcagen_pi extends tx_kbshop_tcagen	{
 		$this->renderTCA__ItemDisplayCond('field_compare_value_dateoffset', $prop['__key']);
 		$this->renderTCA__ItemDisplayCond($this->config->piComparePrefix.'year', $prop['__key']);
 		return false;
+	}
+
+	function renderTCA__User($xmlArr, $prop)	{
+		$this->renderTCA__ItemSet($xmlArr, $prop);
+//		$this->renderTCA__ItemDisplayCond('field_compare_usersel', $prop['__key']);
 	}
 
 	/*

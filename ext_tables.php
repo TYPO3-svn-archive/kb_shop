@@ -38,9 +38,45 @@ $TCA['tx_kbshop_category'] = Array (
 		'iconfile' => t3lib_extMgm::extRelPath($_EXTKEY).'icon_tx_kbshop_category.gif',
 	),
 	'feInterface' => Array (
-		'fe_admin_fieldList' => 'hidden, starttime, endtime, fe_group, title, alias, virtual, allowOnPages, labelProperty, sortingProperty, sortingDirection, parent, image, icon, description, properties',
+		'fe_admin_fieldList' => 'hidden, starttime, endtime, fe_group, title, alias, virtual, allowOnPages, labelProperty, sortingProperty, sortingDirection, parent, image, icon, description, properties, noTabs, saveAndNew',
 	)
 );
+
+
+$TCA['tx_kbshop_belist'] = Array (
+	'ctrl' => Array (
+		'title' => 'LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_belist',		
+		'label' => 'title',	
+		'description_field' => 'description',	
+		'tstamp' => 'tstamp',
+		'crdate' => 'crdate',
+		'cruser_id' => 'cruser_id',
+		'sortby' => 'sorting',	
+		'delete' => 'deleted',	
+			// Versioning - begin
+		'versioningWS' => true,
+		'versioning_followPages' => true,
+		'origUid' => 't3_origuid',
+			// Versioning - end
+			// Localization - begin
+		'languageField' => 'sys_language_uid',
+		'transOrigPointerField' => 'l18n_parent',
+		'transOrigDiffSourceField' => 'l18n_diffsource',
+			// Localization - end
+		'enablecolumns' => Array (		
+			'disabled' => 'hidden',	
+			'starttime' => 'starttime',	
+			'endtime' => 'endtime',	
+			'fe_group' => 'fe_group',
+		),
+		'dynamicConfigFile' => t3lib_extMgm::extPath($_EXTKEY).'tca_belist.php',
+		'iconfile' => t3lib_extMgm::extRelPath($_EXTKEY).'icon_tx_kbshop_category.gif',
+	),
+	'feInterface' => Array (
+		'fe_admin_fieldList' => 'hidden, starttime, endtime, fe_group, title, alias, tablenr, listprops, permaprops, defsortprop',
+	)
+);
+
 
 $TCA['tx_kbshop_property'] = Array (
 	'ctrl' => Array (
@@ -52,7 +88,7 @@ $TCA['tx_kbshop_property'] = Array (
 		'cruser_id' => 'cruser_id',
 		'sortby' => 'sorting',	
 		'delete' => 'deleted',	
-		'requestUpdate' => 'parent,type',
+		'requestUpdate' => 'parent,type,field_wizard_type,field_sqlfield',
 			// Versioning - begin
 		'versioningWS' => true,
 		'versioning_followPages' => true,
@@ -126,9 +162,9 @@ if ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['kb_shop']['TCAmode'])	{
 
 t3lib_div::loadTCA('tt_content');
 $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi1']='layout,select_key,pages,sys_language_uid';
-$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi1']='pi_flexform';
+$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi1']='pi_flexform,image';
 $TCA['tt_content']['types']['list']['subtypes_excludelist'][$_EXTKEY.'_pi2']='layout,select_key,pages,sys_language_uid';
-$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi2']='pi_flexform';
+$TCA['tt_content']['types']['list']['subtypes_addlist'][$_EXTKEY.'_pi2']='pi_flexform,image';
 $TCA['tt_content']['ctrl']['requestUpdate'] .=  ($TCA['tt_content']['ctrl']['requestUpdate']?',':'').'field_compare_field,field_compare_usersel,field_search_page,list_criteria_section';
 
 t3lib_extMgm::addPiFlexFormValue($_EXTKEY.'_pi1', 'FILE:EXT:kb_shop/res/flexform_ds_pi1.xml');
@@ -183,6 +219,14 @@ TCEFORM.tx_kbshop_category	{
 		PAGE_TSCONFIG_STR = '.$GLOBALS['TYPO3_DB']->cleanIntList($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['propertyFolders']).'
 	}
 	sortingProperty {
+		PAGE_TSCONFIG_IDLIST = '.$GLOBALS['TYPO3_DB']->cleanIntList($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['categoryFolders']).'
+		PAGE_TSCONFIG_STR = '.$GLOBALS['TYPO3_DB']->cleanIntList($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['propertyFolders']).'
+	}
+	fecruser_prop {
+		PAGE_TSCONFIG_IDLIST = '.$GLOBALS['TYPO3_DB']->cleanIntList($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['categoryFolders']).'
+		PAGE_TSCONFIG_STR = '.$GLOBALS['TYPO3_DB']->cleanIntList($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['propertyFolders']).'
+	}
+	fecruser_lock {
 		PAGE_TSCONFIG_IDLIST = '.$GLOBALS['TYPO3_DB']->cleanIntList($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['categoryFolders']).'
 		PAGE_TSCONFIG_STR = '.$GLOBALS['TYPO3_DB']->cleanIntList($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['propertyFolders']).'
 	}

@@ -39,6 +39,7 @@ class tx_kbshop_t3libtcemain	{
 		$GLOBALS['TYPO3_DB']->debugOutput = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['kb_shop']['SQLdebug'];
 	}
 
+/*
 	function processDatamap_afterDatabaseOperations($status, $table, $id, $fieldArray, &$parent)	{
 		if ($status=='new')	{
 			$config = t3lib_div::getUserObj('EXT:kb_shop/class.tx_kbshop_config.php:&tx_kbshop_config');
@@ -50,6 +51,7 @@ class tx_kbshop_t3libtcemain	{
 			}
 		}
 	}
+*/
 
 	function processDatamap_postProcessFieldArray($status, $table, $id, &$fieldArray, &$parent)	{
 		if (intval($GLOBALS['TCA'][$table]['ctrl']['virtual']) && ($status=='new'))	{

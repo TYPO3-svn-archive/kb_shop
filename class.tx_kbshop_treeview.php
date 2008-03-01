@@ -282,7 +282,10 @@ class tx_kbshop_treeview {
 					if ($this->foreignTable===$this->confObj->categoriesTable)	{
 						$tabCatUid = $GLOBALS['TCA'][$table]['ctrl']['tableCategoryUid'];
 						$treeViewObj->MOUNTS = array(0 => $tabCatUid); // root-category equals table category
+					} elseif ($config['rootUid'])	{
+						$treeViewObj->MOUNTS = array(0 => $config['rootUid']);
 					}
+
 					$treeViewObj->fieldArray = array('uid',$this->labelField); // those fields will be filled to the array $treeViewObj->tree
 					if (
 							(($TCA[$table]['ctrl']['type'] && !strcmp($field,$TCA[$table]['ctrl']['type'])) ||

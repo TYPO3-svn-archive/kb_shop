@@ -130,7 +130,9 @@ $TCA['tx_kbshop_property'] = Array (
 					Array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_property.type.I.14', '14'),
 					Array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_property.type.I.15', '15'),
 					Array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_property.type.I.8', '8'),
+					Array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_property.type.I.16', '16'),
 					Array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_property.type.I.11', '11'),
+					Array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_property.type.I.17', '17'),
 					Array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_property.type.I.200', '200'),
 				),
 				'size' => 1,	
@@ -182,6 +184,8 @@ $TCA['tx_kbshop_property'] = Array (
 					'13' => 'FILE:EXT:kb_shop/res/ds_property_timesec.xml',
 					'14' => 'FILE:EXT:kb_shop/res/ds_property_datetime.xml',
 					'15' => 'FILE:EXT:kb_shop/res/ds_property_year.xml',
+					'16' => 'FILE:EXT:kb_shop/res/ds_property_link.xml',
+					'17' => 'FILE:EXT:kb_shop/res/ds_property_user.xml',
 					'200' => 'FILE:EXT:kb_shop/res/ds_property_container.xml',
 				),
 			)
@@ -234,5 +238,12 @@ $TCA['tx_kbshop_property'] = Array (
 		'2' => Array('showitem' => 'l18n_parent, l18n_diffsource'),
 	)
 );
+
+
+if (t3lib_extMgm::isLoaded('rggooglemap'))	{
+	$TCA['tx_kbshop_property']['columns']['type']['config']['items'][] = Array('LLL:EXT:kb_shop/locallang_db.php:tx_kbshop_property.type.I.100', '100');
+	$TCA['tx_kbshop_property']['columns']['flexform']['config']['ds'][100] = 'FILE:EXT:kb_shop/res/ds_property_geolocation.xml';
+}
+
 
 ?>

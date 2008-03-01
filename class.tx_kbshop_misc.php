@@ -75,23 +75,6 @@ class tx_kbshop_misc	{
 	}
 
 	
-	function loadSectionTCA($tcaCols)	{
-		foreach ($tcaCols as $colIdx => $colArr)	{
-			if (($colArr['config']['type']=='user')&&($colArr['config']['userFunc']=='EXT:kb_shop/class.tx_kbshop_tcasection.php:tx_kbshop_tcasection->getSingleField_typeSection'))	{
-				if (is_array($colArr['config']['el'])&&count($colArr['config']['el']))	{
-					foreach ($colArr['config']['el'] as $table => $tca)	{
-						if (!(is_array($GLOBALS['TCA'][$table]['columns'])&&count($GLOBALS['TCA'][$table]['columns'])))	{
-							$GLOBALS['TCA'][$table] = $tca;
-						}
-						if (is_array($tca['columns'])&&count($tca['columns']))	{
-							tx_kbshop_misc::loadSectionTCA($tca['columns']);
-						}
-					}
-				}
-			}
-		}
-	}
-	
 	function createDirs($uploadFolders)	{
 		foreach ($uploadFolders as $dir)	{
 			if (!file_exists(PATH_site.$dir))	{

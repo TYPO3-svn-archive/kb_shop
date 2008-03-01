@@ -32,6 +32,7 @@
  * [CLASS/FUNCTION INDEX of SCRIPT]
  */
 
+require_once(PATH_t3lib.'class.t3lib_page.php');
 require_once(PATH_t3lib.'class.t3lib_befunc.php');
 class tx_kbshop_abstract	{
 
@@ -87,7 +88,12 @@ class tx_kbshop_abstract	{
 				return t3lib_BEfunc::getRecord($table, $uid);
 			}
 		} elseif (TYPO3_MODE=='FE')	{
-			return $GLOBALS['TSFE']->sys_page->getRawRecord($table, $uid);
+			if ($GLOBALS['TSFE']->sys_page)	{
+				return $GLOBALS['TSFE']->sys_page->getRawRecord($table, $uid);
+			} else	{
+				$pageObj = t3lib_div::makeInstance('t3lib_pageSelect');
+				return $pageObj->getRawRecord($table, $uid);
+			}
 		} else	{
 			return false;
 		}
@@ -307,6 +313,11 @@ class tx_kbshop_abstract	{
 
 	function getRecordTitle($table, $row)	{
 		global $TCA;
+		if (!is_object($GLOBALS['LANG']))	{
+			require_once(t3lib_extMgm::extPath('lang').'lang.php');
+			$GLOBALS['LANG'] = t3lib_div::makeInstance('language');
+			$GLOBALS['LANG']->init($BE_USER->uc['lang']);
+		}
 		if (is_array($TCA[$table]))	{
 			$lf = $TCA[$table]['ctrl']['label'];
 			$alf = $TCA[$table]['ctrl']['label_alt'];
@@ -338,6 +349,25 @@ class tx_kbshop_abstract	{
 		}
 		return $row['uid'];
 	}
+
+
+	function clearCache($page, $rec = false, $reg = 0)	{
+		$page = intval($page);
+		$reg = intval($reg);
+		if ($rec)	{
+			$pages = implode(',', tx_kbshop_abstract::getPagesRecursive($page));
+		} else	{
+			$pages = $page;
+		}
+		$where = 'page_id IN ('.$pages.')';
+		if ($reg)	{
+			$where .= ' AND reg1 LIKE \'%,'.($reg).',%\'';
+		} elseif ($reg===false)	{
+			$where .= ' AND reg1 LIKE \'%,%,%,%\'';
+		}
+		$GLOBALS['TYPO3_DB']->exec_DELETEquery('cache_pages', $where);
+	}
+
 
 }
 

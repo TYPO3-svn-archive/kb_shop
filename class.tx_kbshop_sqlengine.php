@@ -70,8 +70,19 @@ class tx_kbshop_sqlengine	{
 			$origDbTables = $dbTables = $this->getDBTables();
 			$this->relTables = $this->getRelTables($dbTables, $tkey);
 			foreach ($dbTables as $tkey => $trow)	{
+				$tuid = $this->tableUids[$tkey];
+				if ($this->tables[$tuid]['tcaTable'])	{
+					$this->config->fieldPrefix_backup = $this->config->fieldPrefix;
+					$this->config->entriesTablePrefix_backup = $this->config->entriesTablePrefix;
+					$this->config->fieldPrefix = '';
+					$this->config->entriesTablePrefix = '';
+				}
 				list($data, $mod) = $this->updateSQLTable($data, $tkey, $trow);
 				$modified |= $mod;
+				if ($this->tables[$tuid]['tcaTable'])	{
+					$this->config->fieldPrefix = $this->config->fieldPrefix_backup;
+					$this->config->entriesTablePrefix = $this->config->entriesTablePrefix_backup;
+				}
 			}
 			$relTables = $this->getRelTables($origDbTables);
 			$data = $this->setSectionTableCode($data, $relTables);
@@ -132,7 +143,8 @@ CREATE TABLE '.$this->config->entriesTablePrefix.$tkey.' (
 			}
 		} else	{
 			list($nlines, $fulltext) = $this->getSQLFieldLines($trow);
-			$lrecs = tx_kbshop_abstract::getRecordsByField('tx_kbshop_category', 'l18n_parent', $trow['uid']);
+			$tuid = $this->tableUids[$tkey];
+			$lrecs = tx_kbshop_abstract::getRecordsByField('tx_kbshop_category', 'l18n_parent', $tuid);
 			if (count($lrecs))	{
 				$nlines[] = '	sys_language_uid int(11) DEFAULT \'0\' NOT NULL,'.chr(10);
 				$nlines[] = '	l18n_parent int(11) DEFAULT \'0\' NOT NULL,'.chr(10);
@@ -155,7 +167,7 @@ CREATE TABLE '.$this->config->entriesTablePrefix.$tkey.' (
 
 	function getDBTables($virtual = 0)	{
 		$dbTables = array();
-		$cats = tx_kbshop_abstract::getRecordsByField($this->config->categoriesTable, 'virtual', $virtual, 'sorting', ' AND sys_language_uid=0 AND parent=0'.tx_kbshop_abstract::deleteClause($this->config->categoriesTable));
+		$cats = tx_kbshop_abstract::getRecordsByField($this->config->categoriesTable, 'parent', 0, 'sorting', ' AND virtual'.($virtual?'>0':'=0').' AND sys_language_uid=0 AND parent=0'.tx_kbshop_abstract::deleteClause($this->config->categoriesTable));
 		foreach ($cats as $row)	{
 			$tkey = tx_kbshop_misc::getKey($row);
 			$tuid = $row['uid'];
@@ -166,6 +178,7 @@ CREATE TABLE '.$this->config->entriesTablePrefix.$tkey.' (
 					'alias' => $row['alias'],
 					'description' => $row['description'],
 					'image' => $row['image'],
+					'tcaTable' => $row['tcaTable'],
 				);
 			}
 			$this->tableUids[$tkey] = $tuid;
@@ -185,10 +198,12 @@ CREATE TABLE '.$this->config->entriesTablePrefix.$tkey.' (
 			$propUids = array_unique($propUids);
 			if (count($propUids))	{
 				$props = tx_kbshop_abstract::getRecordsByField($this->config->propertiesTable, 'sys_language_uid', 0, 'sorting', ' AND '.$this->config->propertiesTable.'.uid IN ('.implode(',', $propUids).') '.tx_kbshop_abstract::deleteClause($this->config->propertiesTable));
-				foreach ($props as $prop)	{
-					$pkey = tx_kbshop_misc::getKey($prop);
-					$this->tables[$tuid]['properties'][$prop['uid']] = $prop;
-					$dbTables[$tkey][$pkey] = $prop;
+				if (is_array($props))	{
+					foreach ($props as $prop)	{
+						$pkey = tx_kbshop_misc::getKey($prop);
+						$this->tables[$tuid]['properties'][$prop['uid']] = $prop;
+						$dbTables[$tkey][$pkey] = $prop;
+					}
 				}
 			} else	{
 					$this->tables[$tuid]['properties'][$prop['uid']] = array();
@@ -304,6 +319,7 @@ CREATE TABLE '.$this->config->mmRelationTablePrefix.$createTables.$this->config-
 	uid_foreign int(11) unsigned DEFAULT \'0\' NOT NULL,
 	tablenames varchar(30) DEFAULT \'\' NOT NULL,
 	sorting int(11) unsigned DEFAULT \'0\' NOT NULL,
+	crdate int(11) DEFAULT \'0\' NOT NULL,
 	KEY uid_local (uid_local),
 	KEY uid_foreign (uid_foreign)
 );
@@ -366,8 +382,42 @@ CREATE TABLE '.$this->config->mmRelationTablePrefix.$createTables.$this->config-
 					case 11:		// renderTCA__File
 						$str .= 'blob NOT NULL';
 					break;
+					case 100:		// renderTCA__geolocation
+						$str = chr(9).$fieldPrefix.$field.'_lat ';
+						$str .= 'varchar(30) DEFAULT \'\' NOT NULL,'.chr(10);
+						$str .= chr(9).$fieldPrefix.$field.'_lng ';
+						$str .= 'varchar(30) DEFAULT \'\' NOT NULL';
+					break;
 					case 200:		// renderTCA__container
 						$str .= 'int(11) DEFAULT \'0\' NOT NULL';
+					break;
+					case 16:		// renderTCA__Check
+						$str .= 'tinytext NOT NULL';
+					break;
+					case 17:		// renderTCA__Check
+						$xmldata = t3lib_div::xml2array($fArr['flexform']);
+						$xmlArr = $xmldata['data']['sDEF'][$this->config->lDEF];
+						$field = $xmlArr['field_sqlfield'][$this->config->vDEF];
+						switch ($field)	{
+							case 'int':
+							case 'tinyint':
+								$def = '0';
+							case 'varchar':
+								$len = $xmlArr['field_sqlsize'][$this->config->vDEF];
+								$sig  = intval($xmlArr['field_sqlsigned'][$this->config->vDEF])?'signed':'unsigned';
+								$str .= $field.'('.$len.') '.$sig.' DEFAULT \''.$def.'\' NOT NULL';
+							break;
+							case 'text':
+							case 'mediumtext':
+							case 'tinytext':
+							case 'blob':
+								$str .= $field.' NOT NULL';
+							break;
+							default:
+								echo 'Invalid SQL field type \''.$field.'\' !';
+								exit();
+							break;
+						}
 					break;
 					case 6:		// renderTCA__Check
 						$str .= 'tinyint(4) unsigned DEFAULT \'0\' NOT NULL';

@@ -21,9 +21,14 @@ RTE.config.tx_kbshop_category.description { hidePStyleItems = H1, H4, H5, H6
   }
 }
 ');
+$tsConfigFile = PATH_site.'typo3temp/kb_shop_userTSconfig.dat';
+$userTSconfig = '';
+if (@is_file($tsConfigFile))	{
+	$userTSconfig = t3lib_div::getURL($tsConfigFile);
+}
 t3lib_extMgm::addUserTSConfig('
 	options.saveDocNew.tx_kbshop_property=1
-');
+'.$userTSconfig);
 
   ## Extending TypoScript from static template uid=43 to set up userdefined tag:
 t3lib_extMgm::addTypoScript($_EXTKEY,"editorcfg","
@@ -33,7 +38,7 @@ t3lib_extMgm::addTypoScript($_EXTKEY,"editorcfg","
 
 
 t3lib_extMgm::addPItoST43($_EXTKEY,"pi1/class.tx_kbshop_pi1.php", "_pi1", "list_type", 1);	// Cached version
-t3lib_extMgm::addPItoST43($_EXTKEY,"pi1/class.tx_kbshop_pi1.php", "_pi2", "list_type", 0);	// Uncached version
+t3lib_extMgm::addPItoST43($_EXTKEY,"pi1/class.tx_kbshop_pi2.php", "_pi2", "list_type", 0);	// Uncached version
 
 
 $_EXTCONF = unserialize($_EXTCONF);    // unserializing the configuration so we can use it here
@@ -62,7 +67,9 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tce']['formevals']['tx_kbshop_isEmail
 $GLOBALS['TYPO3_CONF_VARS']['BE']['XCLASS']['t3lib/class.t3lib_tceforms.php'] = t3lib_extMgm::extPath($_EXTKEY).'class.ux_t3lib_tceforms.php';
 $GLOBALS['TYPO3_CONF_VARS']['FE']['XCLASS']['t3lib/class.t3lib_tceforms.php'] = t3lib_extMgm::extPath($_EXTKEY).'class.ux_t3lib_tceforms.php';
 $GLOBALS['TYPO3_CONF_VARS']['FE']['XCLASS']['tslib/class.tslib_content.php'] = t3lib_extMgm::extPath($_EXTKEY).'class.ux_tslib_content.php';
+$GLOBALS['TYPO3_CONF_VARS']['BE']['XCLASS']['tslib/class.tslib_content.php'] = t3lib_extMgm::extPath($_EXTKEY).'class.ux_tslib_content.php';
 
+$GLOBALS['TYPO3_CONF_VARS']['BE']['XCLASS']['t3lib/class.t3lib_tcemain.php'] = t3lib_extMgm::extPath($_EXTKEY).'class.ux_t3lib_tcemain.php';
 
 // $GLOBALS['TYPO3_CONF_VARS']['FE']['XCLASS']['t3lib/class.t3lib_tcemain.php'] = t3lib_extMgm::extPath($_EXTKEY).'class.ux_t3lib_tcemain.php';
 // $GLOBALS['TYPO3_CONF_VARS']['BE']['XCLASS']['t3lib/class.t3lib_transferdata.php'] = t3lib_extMgm::extPath($_EXTKEY).'class.ux_t3lib_transferdata.php';

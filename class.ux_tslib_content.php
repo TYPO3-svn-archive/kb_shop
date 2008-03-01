@@ -34,6 +34,7 @@
 
 
 class ux_tslib_cObj extends tslib_cObj	{
+	var $contentTablesPreg = '/^(pages|tt_.*|fe_.*|tx_.*|ttx_.*|user_.*|static_.*)$/';
 
 	/**
 	 * Calling a user function/class-method
@@ -150,7 +151,24 @@ class ux_tslib_cObj extends tslib_cObj	{
 
 				// Call stdWrap recursively
 			if ($conf['stdWrap'])	{ $content=$this->stdWrap($content,$conf['stdWrap.']); }
-			if (   ($conf['required'] && (string)$content=='') || ($conf['if.'] && !$this->checkIf($conf['if.'])) || ($conf['fieldRequired'] && !trim($this->data[$conf['fieldRequired']]) || ($conf['validEmail']) && !t3lib_div::validEmail($content) )    ){
+			
+			if ( $conf['if.'] && !$this->checkIf($conf['if.']))	{
+				$content = '';
+				if ( $conf['else'] || $conf['else.'] )	{
+					$content = $this->stdWrap($conf['else'], $conf['else.']);
+				}
+				return $content;
+			}else{
+				if ( $conf['elseif'] || $conf['elseif.'] )	{
+
+					$contenttemp = $this->stdWrap($conf['elseif'], $conf['elseif.']);
+					if($contenttemp==1) $content='';
+				
+				}
+				
+			
+			}
+			if ( ($conf['required'] && (string)$content=='') || ($conf['fieldRequired'] && !trim($this->data[$conf['fieldRequired']]) || ($conf['validEmail']) && !t3lib_div::validEmail($content) )    ){
 				$content = '';
 			} else	{
 					// Perform data processing:
@@ -158,10 +176,14 @@ class ux_tslib_cObj extends tslib_cObj	{
 				if ($conf['parseFunc.'] || $conf['parseFunc']) {$content=$this->parseFunc($content,$conf['parseFunc.'],$conf['parseFunc']);}
 				if ($conf['HTMLparser'] && is_array($conf['HTMLparser.'])) {$content=$this->HTMLparser_TSbridge($content,$conf['HTMLparser.']);}
 				if ($conf['split.']){$content=$this->splitObj($content,$conf['split.']);}
-				if ($conf['prioriCalc']){$content=t3lib_div::calcParenthesis($content); if ($conf['prioriCalc']=='intval') $content=intval($content);}
+				if ($conf['prioriCalc']){$content=t3lib_div::calcParenthesis($content); if ($conf['prioriCalc']=='intval') $content=intval($content); if ($conf['prioriCalc']=='round') $content=round($content);}
 				if ((string)$conf['char']!=''){$content=chr(intval($conf['char']));}
 				if ($conf['intval']){$content=intval($content);}
 				if ($conf['date']){$content=date($conf['date'], $content);}
+				if ($conf['strtotime']||$conf['strtotime.'])	{
+					$str = $this->stdWrap($conf['strtotime'], $conf['strtotime.']);
+					$content = strtotime($str, $content);
+				}
 				if ($conf['strftime']){
 					$content = strftime($conf['strftime'], $content);
 					$tmp_charset = $conf['strftime.']['charset'] ? $conf['strftime.']['charset'] : $GLOBALS['TSFE']->localeCharset;
@@ -225,7 +247,7 @@ class ux_tslib_cObj extends tslib_cObj	{
 				if ($conf['wrap']){$content=$this->wrap($content, $conf['wrap'], ($conf['wrap.']['splitChar']?$conf['wrap.']['splitChar']:'|'));}
 				if ($conf['noTrimWrap']){$content=$this->noTrimWrap($content, $conf['noTrimWrap']);}
 				if ($conf['wrap2']){$content=$this->wrap($content, $conf['wrap2'], ($conf['wrap2.']['splitChar']?$conf['wrap2.']['splitChar']:'|'));}
-				if ($conf['dataWrap']){$content=$this->dataWrap($content, $conf['dataWrap']);}
+				if ($conf['dataWrap']||$conf['dataWrap.']){$content=$this->dataWrap($content, $v = $this->stdWrap($conf['dataWrap'], $conf['dataWrap.']), $conf['dataWrap.']['splitChar'], $conf['dataWrap.']['brackets']);}
 				if ($conf['prepend']){$content=$this->cObjGetSingle($conf['prepend'],$conf['prepend.'],'/stdWrap/.prepend').$content;}
 				if ($conf['append']){$content.=$this->cObjGetSingle($conf['append'],$conf['append.'],'/stdWrap/.append');}
 				if ($conf['wrap3']){$content=$this->wrap($content, $conf['wrap3'], ($conf['wrap3.']['splitChar']?$conf['wrap3.']['splitChar']:'|'));}
@@ -255,11 +277,12 @@ class ux_tslib_cObj extends tslib_cObj	{
 
 				if ($conf['editIcons'] && $GLOBALS['TSFE']->beUserLogin){$content=$this->editIcons($content,$conf['editIcons'],$conf['editIcons.']);}
 				if ($conf['editPanel'] && $GLOBALS['TSFE']->beUserLogin){$content=$this->editPanel($content, $conf['editPanel.']);}
+
 			}
 
 				//Debug:
 			if ($conf['debug'])	{$content = '<pre>'.htmlspecialchars($content).'</pre>';}
-			if ($conf['debugFunc'])	{debug($conf['debugFunc']==2?array($content):$content);}
+			if ($conf['debugFunc'])	{ debug($conf['debugFunc']==2?array($content):$content);}
 			if ($conf['debugData'])	{
 				echo '<b>$cObj->data:</b>';
 				t3lib_div::debug($this->data,'$cObj->data:');
@@ -288,8 +311,8 @@ class ux_tslib_cObj extends tslib_cObj	{
 		if ($originalRec)	{		// If the currentRecord is set, we register, that this record has invoked this function. It's should not be allowed to do this again then!!
 			$GLOBALS['TSFE']->recordRegister[$originalRec]++;
 		}
-
-		if ($conf['table']=='pages' || substr($conf['table'],0,3)=='tt_' || substr($conf['table'],0,3)=='fe_' || substr($conf['table'],0,3)=='tx_' || substr($conf['table'],0,4)=='ttx_' || substr($conf['table'],0,5)=='user_')	{
+		if (preg_match($this->contentTablesPreg, $conf['table']))	{
+//		if ($conf['table']=='pages' || substr($conf['table'],0,3)=='tt_' || substr($conf['table'],0,3)=='fe_' || substr($conf['table'],0,3)=='tx_' || substr($conf['table'],0,4)=='ttx_' || substr($conf['table'],0,5)=='user_' || substr($conf['table'],0,5)=='user_')	{
 
 			$renderObjName = $conf['renderObj'] ? $conf['renderObj'] : '<'.$conf['table'];
 			$renderObjKey = $conf['renderObj'] ? 'renderObj' : '';
@@ -376,7 +399,6 @@ class ux_tslib_cObj extends tslib_cObj	{
 		if ($originalRec)	{		// If the currentRecord is set, we register, that this record has invoked this function. It's should not be allowed to do this again then!!
 			$GLOBALS['TSFE']->recordRegister[$originalRec]++;
 		}
-
 		$conf['source'] = $this->stdWrap($conf['source'],$conf['source.']);
 		if ($conf['tables'] && $conf['source']) {
 			$allowedTables = $conf['tables'];
@@ -441,6 +463,206 @@ class ux_tslib_cObj extends tslib_cObj	{
 
 		$GLOBALS['TSFE']->currentRecord = $originalRec;	// Restore
 		return $theValue;
+	}
+
+	/**
+	 * Removes Page UID numbers from the input array which are not available due to enableFields() or the list of bad doktype numbers ($this->checkPid_badDoktypeList)
+	 *
+	 * @param	array		Array of Page UID numbers for select and for which pages with enablefields and bad doktypes should be removed.
+	 * @return	array		Returns the array of remaining page UID numbers
+	 * @access private
+	 * @see getWhere(),checkPid()
+	 */
+	function checkPidArray($listArr)	{
+		$outArr = Array();
+		if (is_array($listArr) && count($listArr))	{
+			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid', 'pages', 'uid IN ('.implode(',',$listArr).')'.$this->enableFields('pages').' AND doktype NOT IN ('.$this->checkPid_badDoktypeList.')');
+			if ($error = $GLOBALS['TYPO3_DB']->sql_error())	{
+				$GLOBALS['TT']->setTSlogMessage($error.': '.$query,3);
+			} else {
+				while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res))	{
+					$outArr[] = $row['uid'];
+				}
+				if (in_array(0, $listArr))	{
+					$outArr[] = 0;
+				}
+			}
+		}
+		return $outArr;
+	}
+
+
+	/**
+	 * Reads a directory for files and returns the filepaths in a string list separated by comma.
+	 * Implements the stdWrap property "filelist"
+	 *
+	 * @param	string		The command which contains information about what files/directory listing to return. See the "filelist" property of stdWrap for details.
+	 * @return	string		Comma list of files.
+	 * @access private
+	 * @see stdWrap()
+	 */
+	function filelist($data)	{
+		$data = trim($data);
+		if ($data)	{
+			$data_arr = explode('|',$data);
+				// read directory:
+			if ($GLOBALS['TSFE']->lockFilePath)	{		// MUST exist!
+				$path = $this->clean_directory($data_arr[0]);	// Cleaning name..., only relative paths accepted.
+				$path = substr($path,0,strlen($GLOBALS['TSFE']->lockFilePath))==$GLOBALS['TSFE']->lockFilePath ? $path : '';
+			}
+			if ($path)	{
+				$items = Array('files'=>array(), 'sorting'=>array());
+				$ext_list = strtolower(t3lib_div::uniqueList($data_arr[1]));
+				$sorting = trim($data_arr[2]);
+					// read dir:
+				$d = @dir($path);
+				$tempArray=Array();
+				if (is_object($d))	{
+					$count=0;
+					if ($match = trim($data_arr[5]))	{
+						$matchObj = t3lib_div::makeInstance('t3lib_matchCondition');
+					}
+					while($entry=$d->read()) {
+						if ($entry!='.' && $entry!='..')	{
+							$wholePath = $path.'/'.$entry;		// Because of odd PHP-error where  <br />-tag is sometimes placed after a filename!!
+							if (@file_exists($wholePath) && filetype($wholePath)=='file')	{
+								$info = t3lib_div::split_fileref($wholePath);
+								if ($matchObj&&!$matchObj->matchWild($entry, $match))	{
+									continue;
+								}
+								if (!$ext_list || t3lib_div::inList($ext_list,$info['fileext']))	{
+									$items['files'][] = $info['file'];
+									switch($sorting)	{
+										case 'name':
+											$items['sorting'][] = strtolower($info['file']);
+										break;
+										case 'size':
+											$items['sorting'][] = filesize($wholePath);
+										break;
+										case 'ext':
+											$items['sorting'][] = $info['fileext'];
+										break;
+										case 'date':
+											$items['sorting'][] = filectime($wholePath);
+										break;
+										case 'mdate':
+											$items['sorting'][] = filemtime($wholePath);
+										break;
+										default:
+											$items['sorting'][] = $count;
+										break;
+									}
+									$count++;
+								}
+							}
+						}
+					}
+					$d->close();
+				}
+					// Sort if required
+				if (count($items['sorting']))	{
+					if (strtolower(trim($data_arr[3]))!='r')	{
+						asort($items['sorting']);
+					} else {
+						arsort($items['sorting']);
+					}
+				}
+				if (count($items['files']))	{
+						// make list
+					reset($items['sorting']);
+					$fullPath = trim($data_arr[4]);
+					$list_arr=Array();
+					while(list($key,)=each($items['sorting']))	{
+						$list_arr[]=  $fullPath ? $path.'/'.$items['files'][$key] : $items['files'][$key];
+					}
+					return implode(',',$list_arr);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Wrapping input value in a regular "wrap" but parses the wrapping value first for "insertData" codes.
+	 *
+	 * @param	string		Input string being wrapped
+	 * @param	string		The wrap string, eg. "<b></b>" or more likely here '<a href="index.php?id={TSFE:id}"> | </a>' which will wrap the input string in a <a> tag linking to the current page.
+	 * @return	string		Output string wrapped in the wrapping value.
+	 * @see insertData(), stdWrap()
+	 */
+	function dataWrap($content,$wrap, $splitChar = '|', $brackets = '{}')	{
+		if (!strlen($splitChar))	{
+			$splitChar = '|';
+		}
+		if (strlen($brackets)<2)	{
+			$brackets = '{}';
+		}
+		return $this->wrap($content,$this->insertData($wrap, $brackets), $splitChar);
+	}
+
+	function insertData($str, $brackets = '{}')	{
+		if (strlen($brackets)<2)	{
+			$brackets = '{}';
+		}
+		$pre = substr($brackets, 0, 1);
+		$post = substr($brackets, 1, 1);
+		$inside=0;
+		$newVal='';
+		$pointer=0;
+		$totalLen = strlen($str);
+		do	{
+			if (!$inside)	{
+				$len = strcspn(substr($str,$pointer), $pre);
+				$newVal.= substr($str,$pointer,$len);
+				$inside = 1;
+			} else {
+				$len = strcspn(substr($str,$pointer), $post)+1;
+				$newVal.= $this->getData(substr($str,$pointer+1,$len-2),$this->data);
+				$inside = 0;
+			}
+			$pointer+=$len;
+		} while($pointer<$totalLen);
+		return $newVal;
+	}
+
+
+	/**
+	 * Returns the 'age' of the tstamp $seconds
+	 *
+	 * @param	integer		Seconds to return age for. Example: "70" => "1 min", "3601" => "1 hrs"
+	 * @param	string		$labels are the labels of the individual units. Defaults to : ' min| hrs| days| yrs'
+	 * @return	string		The formatted string
+	 */
+	function calcAge($seconds,$labels)	{
+		if (t3lib_div::testInt($labels)) {
+			$labels = ' min/ mins| hr/ hrs| day/ days| month/ months| yr/ yrs';
+		} else {
+			$labels=str_replace('"','',$labels);
+		}
+
+		$labelArr = explode('|',$labels);
+		$absSeconds = abs($seconds);
+		if ($absSeconds<3600)	{
+			$label = $labelArr[0];
+			$seconds = intval($seconds/60);
+		} elseif ($absSeconds<24*3600)	{
+			$label = $labelArr[1];
+			$seconds = intval($seconds/3600);
+		} elseif ($absSeconds<30*24*3600)	{
+			$label = $labelArr[2];
+			$seconds = intval($seconds/(24*3600));
+		} elseif ($absSeconds<365*24*3600)	{
+			$label = $labelArr[3];
+			$seconds = intval($seconds/(30*24*3600));
+		} else {
+			$label = $labelArr[4];
+			$seconds = intval($seconds/(365*24*3600));
+		}
+		$label = explode('/', $label);
+		if ($seconds==1)	{
+			return $seconds.$label[0];
+		} else	{
+			return $seconds.($label[1]?$label[1]:$label[0]);
+		}
 	}
 
 }

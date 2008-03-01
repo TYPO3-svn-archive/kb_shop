@@ -46,7 +46,7 @@ class tx_kbshop_config	{
 	var $reverseExtraProps = false;
 
 
-	var $mmRelationTablePrefix = 'tx_kbshop_product_';
+	var $mmRelationTablePrefix = 'tx_kbshop_mtbl_';
 	var $mmRelationTablePostfix = '_KBSMM';
 	var $sectionFieldPrefix = 'kbs_';
 
@@ -97,6 +97,7 @@ class tx_kbshop_config	{
 			}
 			$this->currentCharset = $GLOBALS['LANG']->charSet;
 		}
+		$this->origEntriesTablePrefix = $this->entriesTablePrefix;
 		$this->fieldPrefix = $this->origFieldPrefix;
 		if (strlen($configExt = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['kb_shop']['configExtension']))	{
 			$basePath = t3lib_extMgm::extPath($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['kb_shop']['configExtension']);

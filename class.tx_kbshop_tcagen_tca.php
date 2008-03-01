@@ -39,7 +39,7 @@ class tx_kbshop_tcagen_tca extends tx_kbshop_tcagen	{
 		/*
 		 * Overwrite base renderTCA cause when we have to render a TCA we get fed with an array containig all types first.
 		*/
-	function renderTCA($typeArr, $tkey = '')	{
+	function renderTCA($typeArr, $tkey = '', $baseCat = array())	{
 		$this->entriesTable = $tkey;
 		$allProps = array();
 		$allfields = array('hidden', 'starttime', 'endtime', 'fe_group', 'category');
@@ -58,7 +58,7 @@ class tx_kbshop_tcagen_tca extends tx_kbshop_tcagen	{
 					}
 				}
 				if (count($typeArr[$catIdx][$tabIdx]['props']))	{
-					$types[$catIdx]['showitem'] .= ', '.$this->getTabFieldsRec($typeArr[$catIdx][$tabIdx]['props'], $tabArr['title']);
+					$types[$catIdx]['showitem'] .= ', '.$this->getTabFieldsRec($typeArr[$catIdx][$tabIdx]['props'], $tabArr['title'], 0, $baseCat['noTabs']?true:false);
 				}
 			}
 			$allProps = t3lib_div::array_merge_recursive_overrule($allProps, $typeArr[$catIdx]);
@@ -83,9 +83,9 @@ class tx_kbshop_tcagen_tca extends tx_kbshop_tcagen	{
 		}
 	}
 	
-	function getTabFieldsRec(&$fieldArr, $title = false, $newSection = 0)	{
+	function getTabFieldsRec(&$fieldArr, $title = false, $newSection = 0, $noTabs = false)	{
 		$str = '';
-		if ($title)	{
+		if ($title&&!$noTabs)	{
 			$str .= '--div--;'.preg_replace('/[;,]/', '_', tx_kbshop_abstract::csConv($title, $this->config->currentCharset, 'iso-8859-1'));
 		}
 		foreach ($fieldArr as $propIdx => $prop)	{
@@ -93,7 +93,11 @@ class tx_kbshop_tcagen_tca extends tx_kbshop_tcagen	{
 			if ($prop['type']==3)	{		// RTE
 				$specialConf = $this->getSpecialConf($prop);
 			}
-			$str .= ', '.$propIdx;
+			if ($prop['type']==100)	{
+				$str .= ', '.strtolower($propIdx).'_lng, '.strtolower($propIdx).'_lat';
+			} else	{
+				$str .= ', '.strtolower($propIdx);
+			}
 			if ($specialConf)	{
 				$str .= ';;;'.$specialConf;
 				if ($newSection)	{
@@ -107,10 +111,10 @@ class tx_kbshop_tcagen_tca extends tx_kbshop_tcagen	{
 				}
 			}
 			if (($prop['type']!=200)&&is_array($prop['_SUBPROPS'])&&count($prop['_SUBPROPS']))	{			// Don't get tab properties for a containers subelements
-				$str .= $this->getTabFieldsRec($fieldArr[$propIdx]['_SUBPROPS']);
+				$str .= $this->getTabFieldsRec($fieldArr[$propIdx]['_SUBPROPS'], false, 0, $noTabs);
 			} elseif (($prop['type']==200)&&is_array($prop['_SUBPROPS'])&&count($prop['_SUBPROPS']))	{
 				$newstr = 'hidden;;1;;1-1-1';
-				$newstr .= $this->getTabFieldsRec($fieldArr[$propIdx]['_SUBPROPS'], false, 2);
+				$newstr .= $this->getTabFieldsRec($fieldArr[$propIdx]['_SUBPROPS'], false, 2, $noTabs);
 				$fieldArr[$propIdx]['__showitems'] = $newstr;
 			}
 		}
@@ -123,11 +127,14 @@ class tx_kbshop_tcagen_tca extends tx_kbshop_tcagen	{
 			$tca = array(
 				'ctrl' => $GLOBALS['TCA'][$this->config->entriesTablePrefix.$this->entriesTable]['ctrl'],
 				'interface' => array(
-					'showRecordFieldList' => implode(',', $this->allfields),
+					'showRecordFieldList' => strtolower(implode(',', $this->allfields)),
 					'maxDBListItems' => t3lib_div::intInRange($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['kb_shop']['listItems'], 20, 100000, 20),
 					'maxSingleDBListItems' => t3lib_div::intInRange($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['kb_shop']['singleListItems'], 20, 100000, 100),
 				),
-				'feInterface' => $GLOBALS['TCA'][$this->config->entriesTablePrefix.$this->entriesTable]['feInterface'],
+				// $GLOBALS['TCA'][$this->config->entriesTablePrefix.$this->entriesTable]['feInterface'],
+				'feInterface' => array(
+					'fe_admin_fieldList' => 'pid,deleted,'.strtolower(implode(',', $this->allfields)),
+				),
 				'columns' => array(
 					'hidden' => Array (		
 						'exclude' => 1,	
@@ -247,8 +254,8 @@ class tx_kbshop_tcagen_tca extends tx_kbshop_tcagen	{
 			}
 			$tca['ctrl']['dividers2tabs'] = true;
 			$tca['ctrl']['type'] = 'category';
-			if (intval($tca['ctrl']['virtual']))	{
-				$this->virtual = 1;
+			if ($v = intval($tca['ctrl']['virtual']))	{
+				$this->virtual = $v;
 			}
 		}
 	}
@@ -360,16 +367,32 @@ class tx_kbshop_tcagen_tca extends tx_kbshop_tcagen	{
 		);
 		if (is_array($prop['_SUBPROPS'])&&count($prop['_SUBPROPS']))	{
 			foreach ($prop['_SUBPROPS'] as $subprop)	{
-				list($key, $value) = $this->renderTCA_Element($subprop, $prop['__displayCond']);
-				$sub[$this->config->sectionFieldPrefix.$key] = $value;
+				$el = $this->renderTCA_Element($subprop, $prop['__displayCond']);
+				if ($el['__containsFields'])	{
+					unset($el['__containsFields']);
+					foreach ($el as $key => $value)	{
+						$sub[$this->config->sectionFieldPrefix.$key] = $value;
+					}
+				} else	{
+					list($key, $value) = $el;
+					$sub[$this->config->sectionFieldPrefix.$key] = $value;
+				}
 			}
 		}
 		$xml = t3lib_div::xml2array($prop['flexform']);
-		if ($u = intval($xml['data']['sDEF'][$this->config->lDEF]['field_label'][$this->config->vDEF]))	{
-			list($u) = t3lib_div::intExplode(', ', $u);
-			$p = tx_kbshop_abstract::getRecord($this->config->propertiesTable, $u);
-			$a = preg_replace('/[^a-z0-9_]/', '', strtolower($p['alias']));
-			$lf = $this->config->fieldPrefix.($a?$a:$p['uid']);
+		$altlf = '';
+		if ($u = $xml['data']['sDEF'][$this->config->lDEF]['field_label'][$this->config->vDEF])	{
+			$lfa = t3lib_div::intExplode(',', $u);
+			$lfres = array();
+			foreach ($lfa as $u)	{
+				if (!$u)	continue;
+				$p = tx_kbshop_abstract::getRecord($this->config->propertiesTable, $u);
+				if (!is_array($p))	continue;
+				$a = preg_replace('/[^a-z0-9_]/', '', strtolower($p['alias']));
+				$lfres[] = $this->config->fieldPrefix.($a?$a:$p['uid']);
+			}
+			$lf = array_shift($lfres);
+			$altlf = implode(',', $lfres);
 		} else	{
 			$lf = 'title';
 		}
@@ -385,50 +408,63 @@ class tx_kbshop_tcagen_tca extends tx_kbshop_tcagen	{
 				$sb = 'sorting';
 			}
 		}
-		$config = array(
-			'type' => 'user',
-			'userFunc' => 'EXT:kb_shop/class.tx_kbshop_tcasection.php:tx_kbshop_tcasection->getSingleField_typeSection',
-			'el' =>  array(
-				$this->config->sectionTablePrefix.$this->entriesTable.$this->config->sectionTableCenter.$prop['__key'].$this->config->sectionTablePostfix => array(
-					'ctrl' => array(
-						'title' => tx_kbshop_abstract::csConv($prop['title'], $this->config->currentCharset, 'iso-8859-1'),
-						'label' => $lf,
-						'tstamp' => 'tstamp',
-						'crdate' => 'crdate',
-						'cruser_id' => 'cruser_id',
-						'default_sortby' => $dsb?$dsb:false,
-						'sortby' => $sb?$sb:false,
-						'delete' => 'deleted',
-						'virtual' => $this->virtual,
-						'hideTable' => true,
-						'parentTable' => $this->config->entriesTablePrefix.$this->entriesTable,
-						'hideTableList' => true,
-						'enablecolumns' => Array (		
-							'disabled' => 'hidden',	
-							'starttime' => 'starttime',	
-							'endtime' => 'endtime',	
-							'fe_group' => 'fe_group',
-						),
-						'iconfile' => t3lib_extMgm::extRelPath('kb_shop').'icon_tx_kbshop_section.gif',
-					),
-					'interface' => array(
-						'showRecordFieldList' => $prop['__showRecordFieldList'],
-					),
-					'label' => $prop['title'],
-					'columns' => $sub,
-					'types' => array(
-						'0' => array(
-							'showitem' => $prop['__showitems'],
-						),
-					),
-					'palettes' => array(
-						'1' => array(
-							'showitem' => 'starttime, endtime, fe_group',
-						),
-					),
+		$subtca = array(
+			'ctrl' => array(
+				'title' => tx_kbshop_abstract::csConv($prop['title'], $this->config->currentCharset, 'iso-8859-1'),
+				'label' => $lf,
+				'tstamp' => 'tstamp',
+				'crdate' => 'crdate',
+				'cruser_id' => 'cruser_id',
+				'default_sortby' => $dsb?$dsb:false,
+				'sortby' => $sb?$sb:false,
+				'delete' => 'deleted',
+				'hideTable' => true,
+				'virtual' => $this->virtual,
+				'parentTable' => $this->config->entriesTablePrefix.$this->entriesTable,
+				'hideTableList' => true,
+				'enablecolumns' => Array (		
+					'disabled' => 'hidden',	
+					'starttime' => 'starttime',	
+					'endtime' => 'endtime',	
+					'fe_group' => 'fe_group',
 				),
-			)
+				'iconfile' => t3lib_extMgm::extRelPath('kb_shop').'icon_tx_kbshop_section.gif',
+			),
+			'interface' => array(
+				'showRecordFieldList' => $prop['__showRecordFieldList'],
+			),
+			'feInterface' => array(
+				'fe_admin_fieldList' => $prop['__showRecordFieldList'],
+			),
+			'label' => $prop['title'],
+			'columns' => $sub,
+			'types' => array(
+				'0' => array(
+					'showitem' => $prop['__showitems'],
+				),
+			),
+			'palettes' => array(
+				'1' => array(
+					'showitem' => 'starttime, endtime, fe_group',
+				),
+			),
 		);
+		if (strlen($altlf))	{
+			$subtca['ctrl']['label_alt_force'] = 1;
+			$subtca['ctrl']['label_alt'] = $altlf;
+		}
+		$ftable = $this->config->sectionTablePrefix.$this->entriesTable.$this->config->sectionTableCenter.$prop['__key'].$this->config->sectionTablePostfix;
+		$config = array(
+			'type' => 'inline',
+			'foreign_table' => $ftable,
+			'foreign_field' => 'parent',
+			'appearance' => array(
+				'collapseAll' => true,
+				'expandSingle' => true,
+				'newRecordLinkAddTitle' => true,
+			),
+		);
+		$GLOBALS['TCA'][$ftable] = $subtca;
 		return $config;
 	}
 

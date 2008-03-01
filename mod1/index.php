@@ -145,7 +145,6 @@ class tx_kbshop_module1 extends t3lib_SCbase {
 	 * Prints out the module HTML
 	 */
 	function printContent()	{
-
 		$this->content.=$this->doc->endPage();
 		echo $this->content;
 	}
