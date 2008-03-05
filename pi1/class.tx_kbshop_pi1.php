@@ -26,7 +26,7 @@
  *
  * @author	Bernhard Kraft <kraftb@kraftb.at>
  */
-ini_set ('display_errors', 0);
+ini_set ('display_errors', 1);
 
 $_EXTKEY = 'kb_shop';
 $_EXTKEY_ = str_replace('_', '', $_EXTKEY);
@@ -1438,8 +1438,19 @@ class tx_kbshop_pi1 extends tslib_pibase {
 		if ($field=='uid')	{
 			$this->setLinkMarkers($ma, $sp, $row, $prefix?$prefix:'ITEM_');
 		}
+		
 		list($value, $set) = $this->getFieldRenderValue($fArr, $row[$field]);
-		$ma['###FIELD_VALUE_'.$prefix.$key.'###'] = $value;
+		
+		$lconf = $conf = $this->conf[$this->tskey.'.']['itemList.']['hooks.'];
+
+		if ($lconf[$field]) {
+			$lconf = $lconf[$field.'.'];
+			$_procObj = & t3lib_div::getUserObj($lconf['class']);
+
+			$ma['###FIELD_VALUE_'.$prefix.$key.'###'] = $_procObj->extraItemMarkerProcessor($row, $lconf, $this, $field);
+		}else{
+			$ma['###FIELD_VALUE_'.$prefix.$key.'###'] = $value;	
+		}
 		return $set;
 	}
 
